@@ -1,0 +1,18 @@
+env: local
+
+server:
+  url: :8080
+
+#db:
+#  user: postgres
+#  password: postgres
+#  name: haha
+#  host: haha_db
+#  port: 5432
+
+db:
+  user: postgres
+  password: 1234
+  name: haha
+  host: localhost
+  port: 5432
