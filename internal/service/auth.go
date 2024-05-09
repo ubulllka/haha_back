@@ -31,16 +31,14 @@ func NewAuthService(repo Authorization) *AuthService {
 
 func (s *AuthService) CreateUser(name, email, telegram, password, role string) (uint, error) {
 	user := models.User{
-		Name:             name,
-		Email:            email,
-		Telegram:         telegram,
-		Password:         password,
-		Role:             role,
-		Status:           "",
-		ApplicantVacancy: make([]models.ResponseApplicants, 0),
-		EmployerVacancy:  make([]models.Vacancy, 0),
-		ApplicantResume:  make([]models.Resume, 0),
-		EmployerResume:   make([]models.ResponseEmployers, 0),
+		Name:     name,
+		Email:    email,
+		Telegram: telegram,
+		Password: password,
+		Role:     role,
+		Status:   "",
+		Vacancy:  make([]models.Vacancy, 0),
+		Resume:   make([]models.Resume, 0),
 	}
 	if strings.EqualFold(user.Role, models.APPLICANT) {
 		user.Status = models.ACTIVE
@@ -53,10 +51,10 @@ func (s *AuthService) CreateUser(name, email, telegram, password, role string) (
 	return s.repo.Create(user)
 }
 
-func (s *AuthService) GenerateToken(email, password string) (string, error) {
+func (s *AuthService) GenerateToken(email, password string) (string, string, error) {
 	user, err := s.repo.GetOne(email, generatePasswordHash(password))
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &tokenClaims{
@@ -66,8 +64,12 @@ func (s *AuthService) GenerateToken(email, password string) (string, error) {
 		},
 		user.ID,
 	})
+	tokenStr, err := token.SignedString([]byte(signingKey))
+	if err != nil {
+		return "", "", err
+	}
 
-	return token.SignedString([]byte(signingKey))
+	return tokenStr, user.Role, err
 }
 
 func (s *AuthService) ParseToken(accessToken string) (uint, error) {

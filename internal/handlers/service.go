@@ -8,7 +8,7 @@ import (
 
 type Authorization interface {
 	CreateUser(name, email, telegram, password, role string) (uint, error)
-	GenerateToken(email, password string) (string, error)
+	GenerateToken(email, password string) (string, string, error)
 	ParseToken(token string) (uint, error)
 	GetUser(id uint) (models.User, error)
 }

@@ -45,7 +45,7 @@ func (h *Handler) signIn(c *gin.Context) {
 		return
 	}
 
-	token, err := h.services.Authorization.GenerateToken(input.Email, input.Password)
+	token, role, err := h.services.Authorization.GenerateToken(input.Email, input.Password)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
@@ -53,5 +53,6 @@ func (h *Handler) signIn(c *gin.Context) {
 
 	c.JSON(http.StatusOK, map[string]interface{}{
 		"token": token,
+		"role":  role,
 	})
 }

@@ -23,7 +23,7 @@ func InitializeDB(logg logger.Logger, host, user, password, name string, port in
 	}
 
 	DB.AutoMigrate(&models.User{}, &models.Vacancy{}, &models.Resume{},
-		&models.Work{}, &models.ResponseEmployers{}, &models.ResponseApplicants{})
+		&models.Work{})
 
 	err = DB.DB().Ping()
 	if err != nil {
