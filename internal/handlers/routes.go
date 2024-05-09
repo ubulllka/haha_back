@@ -35,11 +35,20 @@ func (h *Handler) InitRouter() *gin.Engine {
 		auth.GET("/info", h.getAllUser)
 	}
 
-	vacAnon := r.Group("/api/vac")
+	apiAnon := r.Group("/api")
 	{
-		vacAnon.GET("/", h.getAllVacancies)
-		vacAnon.GET("/search", h.searchVacancies)
-		vacAnon.GET("/:id", h.getVacancy)
+		vacAnon := apiAnon.Group("/vac")
+		{
+			vacAnon.GET("/", h.getAllVacancies)
+			vacAnon.GET("/search", h.searchVacancies)
+			vacAnon.GET("/:id", h.getVacancy)
+		}
+		resAnon := apiAnon.Group("/res")
+		{
+			resAnon.GET("/", h.getAllResumes)
+			resAnon.GET("/search", h.searchResumes)
+			resAnon.GET("/:id", h.getResume)
+		}
 	}
 
 	api := r.Group("/api", h.userIdentity)
@@ -63,9 +72,6 @@ func (h *Handler) InitRouter() *gin.Engine {
 
 		res := api.Group("/res")
 		{
-			res.GET("/", h.getAllResumes)
-			res.GET("/search", h.searchResumes)
-			res.GET("/:id", h.getResume)
 			res.POST("/", h.createResume)
 			res.PATCH("/:id", h.updateResume)
 			res.DELETE("/:id", h.deleteResume)
