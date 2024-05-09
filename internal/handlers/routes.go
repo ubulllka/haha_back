@@ -26,6 +26,7 @@ func (h *Handler) InitRouter() *gin.Engine {
 	corsConfig.AllowOrigins = []string{"http://localhost:3000"}
 	corsConfig.AllowCredentials = true
 	corsConfig.AddAllowMethods("OPTIONS")
+	corsConfig.AllowHeaders = []string{"Content-Type", "Authorization"}
 	r.Use(cors.New(corsConfig))
 
 	auth := r.Group("/auth")
@@ -37,6 +38,10 @@ func (h *Handler) InitRouter() *gin.Engine {
 
 	apiAnon := r.Group("/api")
 	{
+		userAnon := apiAnon.Group("/user")
+		{
+			userAnon.GET("/:id", h.getUser)
+		}
 		vacAnon := apiAnon.Group("/vac")
 		{
 			vacAnon.GET("/", h.getAllVacancies)

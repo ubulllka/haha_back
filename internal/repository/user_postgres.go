@@ -16,7 +16,7 @@ func NewUserPostgres(db *gorm.DB) *UserPostgres {
 
 func (r *UserPostgres) GetAll() ([]models.User, error) {
 	var users []models.User
-	if err := r.db.Preload("ApplicantVacancy").Preload("EmployerVacancy").Preload("ApplicantResume").Preload("EmployerResume").Find(&users).Error; err != nil {
+	if err := r.db.Preload("Vacancies").Preload("Resumes").Find(&users).Error; err != nil {
 		return nil, err
 	}
 	return users, nil
@@ -24,7 +24,10 @@ func (r *UserPostgres) GetAll() ([]models.User, error) {
 
 func (r *UserPostgres) GetOneById(id uint) (models.User, error) {
 	var user models.User
-	if err := r.db.Preload("ApplicantVacancy").Preload("EmployerVacancy").Preload("ApplicantResume").Preload("EmployerResume").First(&user, id).Error; err != nil {
+	//if err := r.db.Preload("Vacancies").Preload("Resumes").First(&user, id).Error; err != nil {
+	//	return models.User{}, err
+	//}
+	if err := r.db.First(&user, id).Error; err != nil {
 		return models.User{}, err
 	}
 	return user, nil

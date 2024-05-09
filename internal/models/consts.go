@@ -17,6 +17,7 @@ const (
 	ACCEPT  = "ACCEPT"
 	DECLINE = "DECLINE"
 	WAIT    = "WAIT"
+	DELETED = "DELETED"
 
 	PARSEDATE = "02-01-2006"
 )

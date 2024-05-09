@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"haha/internal/models/DTO"
 	"net/http"
+	"strconv"
 )
 
 func (h *Handler) getAllUser(c *gin.Context) {
@@ -40,4 +41,20 @@ func (h *Handler) updateInfo(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, statusResponse{"ok"})
+}
+
+func (h *Handler) getUser(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
+		return
+	}
+
+	user, err := h.services.User.GetUser(uint(id))
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, user)
 }
