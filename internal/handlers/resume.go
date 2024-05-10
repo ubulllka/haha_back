@@ -11,22 +11,41 @@ import (
 )
 
 func (h *Handler) getAllResumes(c *gin.Context) {
-	resumes, err := h.services.Resume.GetAllResumes()
+	page, err := strconv.Atoi(c.Query("page"))
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "invalid page param")
+		return
+	}
+
+	resumes, pag, err := h.services.Resume.GetAllResumes(int64(page))
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
-	c.JSON(http.StatusOK, resumes)
+	c.JSON(http.StatusOK, map[string]interface{}{
+		"res": resumes,
+		"pag": pag,
+	})
 }
 
 func (h *Handler) searchResumes(c *gin.Context) {
 	q := c.Query("q")
-	resumes, err := h.services.Resume.SearchResumes(q)
+
+	page, err := strconv.Atoi(c.Query("page"))
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "invalid page param")
+		return
+	}
+
+	resumes, pag, err := h.services.Resume.SearchResumes(int64(page), q)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
-	c.JSON(http.StatusOK, resumes)
+	c.JSON(http.StatusOK, map[string]interface{}{
+		"res": resumes,
+		"pag": pag,
+	})
 }
 
 func (h *Handler) getApplAllResumes(c *gin.Context) {

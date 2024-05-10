@@ -20,8 +20,8 @@ type User interface {
 }
 
 type Vacancy interface {
-	GetAll() ([]models.Vacancy, error)
-	Search(q string) ([]models.Vacancy, error)
+	GetAll(page int64) ([]models.Vacancy, models.PaginationData, error)
+	Search(page int64, q string) ([]models.Vacancy, models.PaginationData, error)
 	GetEmplAll(userId uint) ([]models.Vacancy, error)
 	GetOne(vacancyId uint) (models.Vacancy, error)
 	Create(vacancy models.Vacancy) (uint, error)
@@ -30,8 +30,8 @@ type Vacancy interface {
 }
 
 type Resume interface {
-	GetAll() ([]models.Resume, error)
-	Search(q string) ([]models.Resume, error)
+	GetAll(page int64) ([]models.Resume, models.PaginationData, error)
+	Search(page int64, q string) ([]models.Resume, models.PaginationData, error)
 	GetApplAll(userId uint) ([]models.Resume, error)
 	GetOne(resumeId uint) (models.Resume, error)
 	Create(resume models.Resume) (uint, error)

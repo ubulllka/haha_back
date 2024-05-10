@@ -16,12 +16,12 @@ func NewResumeService(repoResume Resume) *ResumeService {
 	return &ResumeService{repo: repoResume}
 }
 
-func (s *ResumeService) GetAllResumes() ([]models.Resume, error) {
-	return s.repo.GetAll()
+func (s *ResumeService) GetAllResumes(page int64) ([]models.Resume, models.PaginationData, error) {
+	return s.repo.GetAll(page)
 }
 
-func (s *ResumeService) SearchResumes(q string) ([]models.Resume, error) {
-	return s.repo.Search(q)
+func (s *ResumeService) SearchResumes(page int64, q string) ([]models.Resume, models.PaginationData, error) {
+	return s.repo.Search(page, q)
 }
 
 func (s *ResumeService) GetApplAllResumes(id uint) ([]models.Resume, error) {
@@ -45,9 +45,14 @@ func (s *ResumeService) CreateResume(userId uint, resume DTO.ResumeCreate) (uint
 		if err != nil {
 			return 0, err
 		}
-		tEnd, err := time.Parse(models.PARSEDATE, v.EndTime)
-		if err != nil {
-			return 0, err
+		var tEnd time.Time
+		if !strings.EqualFold(v.EndTime, "") {
+			tEnd, err = time.Parse(models.PARSEDATE, v.EndTime)
+			if err != nil {
+				return 0, err
+			}
+		} else {
+			tEnd = time.Time{}
 		}
 		newWork := models.Work{
 			Post:        v.Post,

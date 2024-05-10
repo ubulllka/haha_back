@@ -15,12 +15,12 @@ func NewVacancyService(repo Vacancy) *VacancyService {
 	return &VacancyService{repo: repo}
 }
 
-func (s *VacancyService) GetAllVacancies() ([]models.Vacancy, error) {
-	return s.repo.GetAll()
+func (s *VacancyService) GetAllVacancies(page int64) ([]models.Vacancy, models.PaginationData, error) {
+	return s.repo.GetAll(page)
 }
 
-func (s *VacancyService) SearchVacancies(q string) ([]models.Vacancy, error) {
-	return s.repo.Search(q)
+func (s *VacancyService) SearchVacancies(page int64, q string) ([]models.Vacancy, models.PaginationData, error) {
+	return s.repo.Search(page, q)
 }
 
 func (s *VacancyService) GetEmplAllVacancies(id uint) ([]models.Vacancy, error) {

@@ -31,14 +31,15 @@ func NewAuthService(repo Authorization) *AuthService {
 
 func (s *AuthService) CreateUser(name, email, telegram, password, role string) (uint, error) {
 	user := models.User{
-		Name:      name,
-		Email:     email,
-		Telegram:  telegram,
-		Password:  password,
-		Role:      role,
-		Status:    "",
-		Vacancies: make([]models.Vacancy, 0),
-		Resumes:   make([]models.Resume, 0),
+		Name:        name,
+		Email:       email,
+		Telegram:    telegram,
+		Password:    password,
+		Role:        role,
+		Status:      "",
+		Description: "",
+		Vacancies:   make([]models.Vacancy, 0),
+		Resumes:     make([]models.Resume, 0),
 	}
 	if strings.EqualFold(user.Role, models.APPLICANT) {
 		user.Status = models.ACTIVE

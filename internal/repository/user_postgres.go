@@ -52,6 +52,10 @@ func (r *UserPostgres) Update(id uint, input DTO.UserUpdate) error {
 		args["password"] = *input.Password
 	}
 
+	if input.Description != nil {
+		args["description"] = *input.Description
+	}
+
 	if input.Password != nil {
 		args["status"] = *input.Status
 	}

@@ -23,7 +23,7 @@ func InitializeDB(logg logger.Logger, host, user, password, name string, port in
 	}
 
 	DB.AutoMigrate(&models.User{}, &models.Vacancy{}, &models.Resume{},
-		&models.Work{})
+		&models.Work{}, &models.ResToVac{}, &models.VacToRes{})
 
 	err = DB.DB().Ping()
 	if err != nil {
@@ -37,4 +37,12 @@ func InitializeDB(logg logger.Logger, host, user, password, name string, port in
 
 func GetDB() *gorm.DB {
 	return DB
+}
+
+func Paginate(page int64) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		var pageSize int64 = 10
+		offset := (page - 1) * pageSize
+		return db.Offset(offset).Limit(pageSize)
+	}
 }

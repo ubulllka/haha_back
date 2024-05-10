@@ -33,10 +33,16 @@ func (s *WorkService) CreateWork(userId, resumeId uint, userRole string, work DT
 	if err != nil {
 		return 0, err
 	}
-	tEnd, err := time.Parse(models.PARSEDATE, work.EndTime)
-	if err != nil {
-		return 0, err
+	var tEnd time.Time
+	if !strings.EqualFold(work.EndTime, "") {
+		tEnd, err = time.Parse(models.PARSEDATE, work.EndTime)
+		if err != nil {
+			return 0, err
+		}
+	} else {
+		tEnd = time.Time{}
 	}
+
 	newWork := models.Work{
 		Post:        work.Post,
 		Description: work.Description,

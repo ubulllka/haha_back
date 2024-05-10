@@ -2,6 +2,7 @@ package repository
 
 import (
 	"github.com/jinzhu/gorm"
+	"haha/internal/db"
 	"haha/internal/models"
 	"haha/internal/models/DTO"
 )
@@ -14,25 +15,33 @@ func NewVacancyPostgres(db *gorm.DB) *VacancyPostgres {
 	return &VacancyPostgres{db: db}
 }
 
-func (r *VacancyPostgres) GetAll() ([]models.Vacancy, error) {
+func (r *VacancyPostgres) GetAll(page int64) ([]models.Vacancy, models.PaginationData, error) {
 	var vacancies []models.Vacancy
-	if err := r.db.Find(&vacancies).Error; err != nil {
-		return nil, err
+
+	pag := models.PaginationData{}
+	pag.GetPagination(r.db, page, "", &models.Vacancy{})
+
+	if err := r.db.Scopes(db.Paginate(page)).Find(&vacancies).Error; err != nil {
+		return nil, models.PaginationData{}, err
 	}
-	return vacancies, nil
+	return vacancies, pag, nil
 }
 
-func (r *VacancyPostgres) Search(q string) ([]models.Vacancy, error) {
+func (r *VacancyPostgres) Search(page int64, q string) ([]models.Vacancy, models.PaginationData, error) {
 	var vacancies []models.Vacancy
-	if err := r.db.Where("post LIKE ?", "%"+q+"%").Find(&vacancies).Error; err != nil {
-		return nil, err
+
+	pag := models.PaginationData{}
+	pag.GetPagination(r.db, page, q, &models.Vacancy{})
+
+	if err := r.db.Where("post LIKE ?", "%"+q+"%").Scopes(db.Paginate(page)).Find(&vacancies).Error; err != nil {
+		return nil, models.PaginationData{}, err
 	}
-	return vacancies, nil
+	return vacancies, pag, nil
 }
 
 func (r *VacancyPostgres) GetEmplAll(userId uint) ([]models.Vacancy, error) {
 	var vacancies []models.Vacancy
-	if err := r.db.Find(&vacancies).Where("employer_id = ?", userId).Error; err != nil {
+	if err := r.db.Where("employer_id = ?", userId).Find(&vacancies).Error; err != nil {
 		return nil, err
 	}
 	return vacancies, nil
@@ -46,14 +55,14 @@ func (r *VacancyPostgres) GetOne(vacancyId uint) (models.Vacancy, error) {
 	return vacancy, nil
 }
 
-func (r *VacancyPostgres) Create(vacancy models.Vacancy) (uint, error)  {
+func (r *VacancyPostgres) Create(vacancy models.Vacancy) (uint, error) {
 	if err := r.db.Create(&vacancy).Error; err != nil {
 		return 0, err
 	}
 	return vacancy.ID, nil
 }
 
-func (r *VacancyPostgres) Update(vacancyId uint, input DTO.VacancyUpdate) error  {
+func (r *VacancyPostgres) Update(vacancyId uint, input DTO.VacancyUpdate) error {
 	args := make(map[string]interface{})
 
 	if input.Post != nil {
@@ -76,6 +85,6 @@ func (r *VacancyPostgres) Update(vacancyId uint, input DTO.VacancyUpdate) error 
 	return nil
 }
 
-func (r *VacancyPostgres) Delete(vacancyId uint) error  {
+func (r *VacancyPostgres) Delete(vacancyId uint) error {
 	return r.db.Delete(&models.Vacancy{}, vacancyId).Error
 }

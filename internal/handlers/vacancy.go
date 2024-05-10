@@ -11,22 +11,41 @@ import (
 )
 
 func (h *Handler) getAllVacancies(c *gin.Context) {
-	vacancies, err := h.services.Vacancy.GetAllVacancies()
+	page, err := strconv.Atoi(c.Query("page"))
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "invalid page param")
+		return
+	}
+
+	vacancies, pag, err := h.services.Vacancy.GetAllVacancies(int64(page))
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
-	c.JSON(http.StatusOK, vacancies)
+	c.JSON(http.StatusOK, map[string]interface{}{
+		"vac": vacancies,
+		"pag": pag,
+	})
 }
 
 func (h *Handler) searchVacancies(c *gin.Context) {
 	q := c.Query("q")
-	vacancies, err := h.services.Vacancy.SearchVacancies(q)
+
+	page, err := strconv.Atoi(c.Query("page"))
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "invalid page param")
+		return
+	}
+
+	vacancies, pag, err := h.services.Vacancy.SearchVacancies(int64(page), q)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
-	c.JSON(http.StatusOK, vacancies)
+	c.JSON(http.StatusOK, map[string]interface{}{
+		"vac": vacancies,
+		"pag": pag,
+	})
 }
 
 func (h *Handler) getEmplAllVacancies(c *gin.Context) {
