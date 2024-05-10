@@ -46,12 +46,18 @@ type Work interface {
 	Delete(workId uint) error
 }
 
+type Respond interface {
+	CreateResToVac(respond DTO.RespondModel) error
+	CreateVacToRes(respond DTO.RespondModel) error
+}
+
 type Repository struct {
 	Authorization
 	User
 	Vacancy
 	Resume
 	Work
+	Respond
 }
 
 func NewRepository(db *gorm.DB) *Repository {
@@ -61,5 +67,6 @@ func NewRepository(db *gorm.DB) *Repository {
 		Vacancy:       repository.NewVacancyPostgres(db),
 		Resume:        repository.NewResumePostgres(db),
 		Work:          repository.NewWorkPostgres(db),
+		Respond:       repository.NewRespondPostgres(db),
 	}
 }

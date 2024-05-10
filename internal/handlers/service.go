@@ -45,12 +45,17 @@ type Work interface {
 	DeleteWork(userId, workId uint, userRole string) error
 }
 
+type Respond interface {
+	CreateRespond(userRole string, respond DTO.RespondModel) error
+}
+
 type Service struct {
 	Authorization
 	User
 	Vacancy
 	Resume
 	Work
+	Respond
 }
 
 func NewService(repos *service.Repository) *Service {
@@ -60,5 +65,6 @@ func NewService(repos *service.Repository) *Service {
 		Vacancy:       service.NewVacancyService(repos.Vacancy),
 		Resume:        service.NewResumeService(repos.Resume),
 		Work:          service.NewWorkService(repos.Resume, repos.Work),
+		Respond:       service.NewRespondService(repos.Respond, repos.Vacancy, repos.Resume),
 	}
 }

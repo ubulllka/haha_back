@@ -58,6 +58,7 @@ func (h *Handler) InitRouter() *gin.Engine {
 
 	api := r.Group("/api", h.userIdentity)
 	{
+		api.POST("/respond", h.respond)
 
 		user := api.Group("/user")
 		{
