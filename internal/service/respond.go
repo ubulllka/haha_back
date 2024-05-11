@@ -17,7 +17,6 @@ func NewRespondService(repoRespond Respond, repoVac Vacancy, repoRes Resume) *Re
 }
 
 func (s *RespondService) CreateRespond(userRole string, respond DTO.RespondModel) error {
-
 	if _, err := s.repoVac.GetOne(respond.VacancyId); err != nil {
 		return err
 	}
@@ -32,4 +31,20 @@ func (s *RespondService) CreateRespond(userRole string, respond DTO.RespondModel
 		return s.repoRespond.CreateVacToRes(respond)
 	}
 	return errors.New("wrong user's role")
+}
+
+func (s *RespondService) GetMyRespondAppl(userId uint, page int64) ([]DTO.RespondVacancy, models.PaginationData, error) {
+	return s.repoRespond.GetMyRespondAppl(userId, page)
+}
+
+func (s *RespondService) GetMyRespondEmpl(userId uint, page int64) ([]models.VacToRes, models.PaginationData, error) {
+	return s.repoRespond.GetMyRespondEmpl(userId, page)
+}
+
+func (s *RespondService) GetOtherRespondAppl(userId uint, page int64) ([]models.VacToRes, models.PaginationData, error) {
+	return s.repoRespond.GetOtherRespondAppl(userId, page)
+}
+
+func (s *RespondService) GetOtherRespondEmpl(userId uint, page int64) ([]models.ResToVac, models.PaginationData, error) {
+	return s.repoRespond.GetOtherRespondEmpl(userId, page)
 }

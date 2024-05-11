@@ -23,8 +23,8 @@ func (s *VacancyService) SearchVacancies(page int64, q string) ([]models.Vacancy
 	return s.repo.Search(page, q)
 }
 
-func (s *VacancyService) GetEmplAllVacancies(id uint) ([]models.Vacancy, error) {
-	return s.repo.GetEmplAll(id)
+func (s *VacancyService) GetEmplAllVacancies(id uint, page int64) ([]models.Vacancy, models.PaginationData, error) {
+	return s.repo.GetEmplAll(id, page)
 }
 
 func (s *VacancyService) GetVacancy(resumeId uint) (models.Vacancy, error) {

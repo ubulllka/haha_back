@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"github.com/gin-gonic/gin"
+	"haha/internal/models"
 	"haha/internal/models/DTO"
 	"net/http"
 	"strconv"
@@ -57,4 +58,42 @@ func (h *Handler) getUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, user)
+}
+
+func (h *Handler) getList(c *gin.Context) {
+	page, err := strconv.Atoi(c.Query("page"))
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "invalid page param")
+		return
+	}
+
+	userRole, _ := getUserRole(c)
+	userId, _ := getUserId(c)
+
+	switch userRole {
+	case models.APPLICANT:
+		list, pag, err := h.services.Resume.GetApplAllResumes(userId, int64(page))
+
+		if err != nil {
+			newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		}
+
+		c.JSON(http.StatusOK, map[string]interface{}{
+			"list": list,
+			"pag":  pag,
+		})
+
+	case models.EMPLOYER:
+		list, pag, err := h.services.Vacancy.GetEmplAllVacancies(userId, int64(page))
+
+		if err != nil {
+			newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		}
+
+		c.JSON(http.StatusOK, map[string]interface{}{
+			"list": list,
+			"pag":  pag,
+		})
+	}
+
 }

@@ -2,7 +2,6 @@ package repository
 
 import (
 	"github.com/jinzhu/gorm"
-	"haha/internal/db"
 	"haha/internal/models"
 	"haha/internal/models/DTO"
 )
@@ -21,7 +20,7 @@ func (r *ResumePostgres) GetAll(page int64) ([]models.Resume, models.PaginationD
 	pag := models.PaginationData{}
 	pag.GetPagination(r.db, page, "", &models.Resume{})
 
-	if err := r.db.Preload("OldWorks").Scopes(db.Paginate(page)).Find(&resumes).Error; err != nil {
+	if err := r.db.Preload("OldWorks").Scopes(Paginate(page, 10)).Find(&resumes).Error; err != nil {
 		return nil, models.PaginationData{}, err
 	}
 	return resumes, pag, nil
@@ -33,18 +32,22 @@ func (r *ResumePostgres) Search(page int64, q string) ([]models.Resume, models.P
 	pag := models.PaginationData{}
 	pag.GetPagination(r.db, page, q, &models.Resume{})
 
-	if err := r.db.Where("post LIKE ?", "%"+q+"%").Preload("OldWorks").Scopes(db.Paginate(page)).Find(&resumes).Error; err != nil {
+	if err := r.db.Where("post LIKE ?", "%"+q+"%").Preload("OldWorks").Scopes(Paginate(page, 10)).Find(&resumes).Error; err != nil {
 		return nil, models.PaginationData{}, err
 	}
 	return resumes, pag, nil
 }
 
-func (r *ResumePostgres) GetApplAll(userId uint) ([]models.Resume, error) {
+func (r *ResumePostgres) GetApplAll(userId uint, page int64) ([]models.Resume, models.PaginationData, error) {
 	var resumes []models.Resume
-	if err := r.db.Preload("OldWorks").Where("applicant_id = ?", userId).Find(&resumes).Error; err != nil {
-		return nil, err
+
+	pag := models.PaginationData{}
+	pag.GetPagination(r.db, page, "", &models.Resume{})
+
+	if err := r.db.Preload("OldWorks").Where("applicant_id = ?", userId).Scopes(Paginate(page, 5)).Find(&resumes).Error; err != nil {
+		return nil, models.PaginationData{}, err
 	}
-	return resumes, nil
+	return resumes, pag, nil
 }
 
 func (r *ResumePostgres) GetOne(resumeId uint) (models.Resume, error) {

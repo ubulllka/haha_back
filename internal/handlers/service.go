@@ -22,7 +22,7 @@ type User interface {
 type Vacancy interface {
 	GetAllVacancies(page int64) ([]models.Vacancy, models.PaginationData, error)
 	SearchVacancies(page int64, q string) ([]models.Vacancy, models.PaginationData, error)
-	GetEmplAllVacancies(userId uint) ([]models.Vacancy, error)
+	GetEmplAllVacancies(userId uint, page int64) ([]models.Vacancy, models.PaginationData, error)
 	GetVacancy(vacancyId uint) (models.Vacancy, error)
 	CreateVacancy(userId uint, vacancy DTO.VacancyCreate) (uint, error)
 	UpdateVacancy(userId, vacancyId uint, userRole string, vacancy DTO.VacancyUpdate) error
@@ -32,7 +32,7 @@ type Vacancy interface {
 type Resume interface {
 	GetAllResumes(page int64) ([]models.Resume, models.PaginationData, error)
 	SearchResumes(page int64, q string) ([]models.Resume, models.PaginationData, error)
-	GetApplAllResumes(userId uint) ([]models.Resume, error)
+	GetApplAllResumes(userId uint, page int64) ([]models.Resume, models.PaginationData, error)
 	GetResume(resumeId uint) (models.Resume, error)
 	CreateResume(userId uint, resume DTO.ResumeCreate) (uint, error)
 	UpdateResume(userId, resumeId uint, userRole string, resume DTO.ResumeUpdate) error
@@ -47,6 +47,10 @@ type Work interface {
 
 type Respond interface {
 	CreateRespond(userRole string, respond DTO.RespondModel) error
+	GetMyRespondAppl(userId uint, page int64) ([]DTO.RespondVacancy, models.PaginationData, error)
+	GetMyRespondEmpl(userId uint, page int64) ([]models.VacToRes, models.PaginationData, error)
+	GetOtherRespondAppl(userId uint, page int64) ([]models.VacToRes, models.PaginationData, error)
+	GetOtherRespondEmpl(userId uint, page int64) ([]models.ResToVac, models.PaginationData, error)
 }
 
 type Service struct {

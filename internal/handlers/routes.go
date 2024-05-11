@@ -58,22 +58,20 @@ func (h *Handler) InitRouter() *gin.Engine {
 
 	api := r.Group("/api", h.userIdentity)
 	{
-		api.POST("/respond", h.respond)
 
 		user := api.Group("/user")
 		{
 			user.GET("/", h.getInfo)
 			user.PATCH("/", h.updateInfo)
+			user.GET("/list", h.getList)
 		}
 
-		appl := api.Group("/appl") //соискатель
+		respond := api.Group("/respond")
 		{
-			appl.GET("/", h.getApplAllResumes)
-		}
+			respond.POST("/", h.createRespond)
+			respond.GET("/my", h.getMyRespond)
+			//respond.GET("/other", h.getOtherRespond)
 
-		empl := api.Group("/empl") //работодатель
-		{
-			empl.GET("/", h.getEmplAllVacancies)
 		}
 
 		res := api.Group("/res")
@@ -81,6 +79,7 @@ func (h *Handler) InitRouter() *gin.Engine {
 			res.POST("/", h.createResume)
 			res.PATCH("/:id", h.updateResume)
 			res.DELETE("/:id", h.deleteResume)
+
 			res.POST("/:id/work", h.createWork)
 			work := res.Group("/work")
 			{

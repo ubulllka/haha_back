@@ -23,8 +23,8 @@ func (h *Handler) getAllVacancies(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, map[string]interface{}{
-		"vac": vacancies,
-		"pag": pag,
+		"list": vacancies,
+		"pag":  pag,
 	})
 }
 
@@ -43,33 +43,9 @@ func (h *Handler) searchVacancies(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, map[string]interface{}{
-		"vac": vacancies,
-		"pag": pag,
+		"list": vacancies,
+		"pag":  pag,
 	})
-}
-
-func (h *Handler) getEmplAllVacancies(c *gin.Context) {
-	userId, err := getUserId(c)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-	}
-
-	userRole, err := getUserRole(c)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-	}
-
-	if !strings.EqualFold(userRole, models.EMPLOYER) {
-		newErrorResponse(c, http.StatusForbidden, errors.New("not enough rights").Error())
-		return
-	}
-
-	vacancies, err := h.services.Vacancy.GetEmplAllVacancies(userId)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-	}
-
-	c.JSON(http.StatusOK, vacancies)
 }
 
 func (h *Handler) getVacancy(c *gin.Context) {

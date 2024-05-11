@@ -23,8 +23,8 @@ func (h *Handler) getAllResumes(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, map[string]interface{}{
-		"res": resumes,
-		"pag": pag,
+		"list": resumes,
+		"pag":  pag,
 	})
 }
 
@@ -43,33 +43,9 @@ func (h *Handler) searchResumes(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, map[string]interface{}{
-		"res": resumes,
-		"pag": pag,
+		"list": resumes,
+		"pag":  pag,
 	})
-}
-
-func (h *Handler) getApplAllResumes(c *gin.Context) {
-	userId, err := getUserId(c)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-	}
-
-	userRole, err := getUserRole(c)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-	}
-
-	if !strings.EqualFold(userRole, models.APPLICANT) {
-		newErrorResponse(c, http.StatusForbidden, errors.New("not enough rights").Error())
-		return
-	}
-
-	resumes, err := h.services.Resume.GetApplAllResumes(userId)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-	}
-
-	c.JSON(http.StatusOK, resumes)
 }
 
 func (h *Handler) getResume(c *gin.Context) {

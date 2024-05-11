@@ -38,11 +38,3 @@ func InitializeDB(logg logger.Logger, host, user, password, name string, port in
 func GetDB() *gorm.DB {
 	return DB
 }
-
-func Paginate(page int64) func(db *gorm.DB) *gorm.DB {
-	return func(db *gorm.DB) *gorm.DB {
-		var pageSize int64 = 10
-		offset := (page - 1) * pageSize
-		return db.Offset(offset).Limit(pageSize)
-	}
-}
