@@ -70,7 +70,7 @@ func (h *Handler) InitRouter() *gin.Engine {
 		{
 			respond.POST("/", h.createRespond)
 			respond.GET("/my", h.getMyRespond)
-			//respond.GET("/other", h.getOtherRespond)
+			respond.GET("/other", h.getOtherRespond)
 
 		}
 

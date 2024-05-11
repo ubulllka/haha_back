@@ -11,15 +11,8 @@ import (
 )
 
 func (h Handler) createWork(c *gin.Context) {
-	userId, err := getUserId(c)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-	}
-
-	userRole, err := getUserRole(c)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-	}
+	userId, _ := getUserId(c)
+	userRole, _ := getUserRole(c)
 
 	if !strings.EqualFold(userRole, models.APPLICANT) && !strings.EqualFold(userRole, models.ADMIN) {
 		newErrorResponse(c, http.StatusForbidden, errors.New("not enough rights").Error())
@@ -50,15 +43,8 @@ func (h Handler) createWork(c *gin.Context) {
 }
 
 func (h Handler) updateWork(c *gin.Context) {
-	userId, err := getUserId(c)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-	}
-
-	userRole, err := getUserRole(c)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-	}
+	userId, _ := getUserId(c)
+	userRole, _ := getUserRole(c)
 
 	if !strings.EqualFold(userRole, models.APPLICANT) && !strings.EqualFold(userRole, models.ADMIN) {
 		newErrorResponse(c, http.StatusForbidden, errors.New("not enough rights").Error())
@@ -80,21 +66,15 @@ func (h Handler) updateWork(c *gin.Context) {
 
 	if err := h.services.Work.UpdateWork(userId, uint(workId), userRole, work); err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
 	}
 
 	c.JSON(http.StatusOK, statusResponse{"ok"})
 }
 
 func (h Handler) deleteWork(c *gin.Context) {
-	userId, err := getUserId(c)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-	}
-
-	userRole, err := getUserRole(c)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-	}
+	userId, _ := getUserId(c)
+	userRole, _ := getUserRole(c)
 
 	if !strings.EqualFold(userRole, models.APPLICANT) && !strings.EqualFold(userRole, models.ADMIN) {
 		newErrorResponse(c, http.StatusForbidden, errors.New("not enough rights").Error())
@@ -109,6 +89,7 @@ func (h Handler) deleteWork(c *gin.Context) {
 
 	if err := h.services.Work.DeleteWork(userId, uint(workId), userRole); err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
 	}
 
 	c.JSON(http.StatusOK, statusResponse{"ok"})

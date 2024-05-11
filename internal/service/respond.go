@@ -37,14 +37,14 @@ func (s *RespondService) GetMyRespondAppl(userId uint, page int64) ([]DTO.Respon
 	return s.repoRespond.GetMyRespondAppl(userId, page)
 }
 
-func (s *RespondService) GetMyRespondEmpl(userId uint, page int64) ([]models.VacToRes, models.PaginationData, error) {
+func (s *RespondService) GetMyRespondEmpl(userId uint, page int64) ([]DTO.RespondResume, models.PaginationData, error) {
 	return s.repoRespond.GetMyRespondEmpl(userId, page)
 }
 
-func (s *RespondService) GetOtherRespondAppl(userId uint, page int64) ([]models.VacToRes, models.PaginationData, error) {
+func (s *RespondService) GetOtherRespondAppl(userId uint, page int64) ([]DTO.RespondVacancy, models.PaginationData, error) {
 	return s.repoRespond.GetOtherRespondAppl(userId, page)
 }
 
-func (s *RespondService) GetOtherRespondEmpl(userId uint, page int64) ([]models.ResToVac, models.PaginationData, error) {
+func (s *RespondService) GetOtherRespondEmpl(userId uint, page int64) ([]DTO.RespondResume, models.PaginationData, error) {
 	return s.repoRespond.GetOtherRespondEmpl(userId, page)
 }

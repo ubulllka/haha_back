@@ -11,6 +11,6 @@ type User struct {
 	Role        string    `json:"role"`
 	Status      string    `json:"status"`
 	Description string    `json:"description"`
-	Resumes     []Resume  `json:"resumes"`   // Applicant
-	Vacancies   []Vacancy `json:"vacancies"` //Employer
+	Resumes     []Resume  `json:"resumes" gorm:"foreignKey:ApplicantID"`  // Applicant
+	Vacancies   []Vacancy `json:"vacancies" gorm:"foreignKey:EmployerID"` //Employer
 }

@@ -14,25 +14,30 @@ func NewResumePostgres(db *gorm.DB) *ResumePostgres {
 	return &ResumePostgres{db: db}
 }
 
-func (r *ResumePostgres) GetAll(page int64) ([]models.Resume, models.PaginationData, error) {
+func (r *ResumePostgres) GetAll() ([]models.Resume, error) {
 	var resumes []models.Resume
-
-	pag := models.PaginationData{}
-	pag.GetPagination(r.db, page, "", &models.Resume{})
-
-	if err := r.db.Preload("OldWorks").Scopes(Paginate(page, 10)).Find(&resumes).Error; err != nil {
-		return nil, models.PaginationData{}, err
+	if err := r.db.Order("updated_at desc").Preload("OldWorks").
+		Find(&resumes).Error; err != nil {
+		return nil, err
 	}
-	return resumes, pag, nil
+	return resumes, nil
 }
 
 func (r *ResumePostgres) Search(page int64, q string) ([]models.Resume, models.PaginationData, error) {
 	var resumes []models.Resume
 
+	var count int64
+	query := "%" + q + "%"
+	dbBefore := r.db.Model(&models.Resume{}).Where("post LIKE ?", query).Count(&count)
+	if err := dbBefore.Error; err != nil {
+		return nil, models.PaginationData{}, err
+	}
+	pageSize := int64(10)
 	pag := models.PaginationData{}
-	pag.GetPagination(r.db, page, q, &models.Resume{})
+	pag.Get(count, page, pageSize)
 
-	if err := r.db.Where("post LIKE ?", "%"+q+"%").Preload("OldWorks").Scopes(Paginate(page, 10)).Find(&resumes).Error; err != nil {
+	if err := dbBefore.Order("updated_at desc").Scopes(Paginate(page, pageSize)).
+		Preload("OldWorks").Find(&resumes).Error; err != nil {
 		return nil, models.PaginationData{}, err
 	}
 	return resumes, pag, nil
@@ -41,10 +46,18 @@ func (r *ResumePostgres) Search(page int64, q string) ([]models.Resume, models.P
 func (r *ResumePostgres) GetApplAll(userId uint, page int64) ([]models.Resume, models.PaginationData, error) {
 	var resumes []models.Resume
 
-	pag := models.PaginationData{}
-	pag.GetPagination(r.db, page, "", &models.Resume{})
+	var count int64
+	dbBefore := r.db.Model(&models.Resume{}).Where("applicant_id = ?", userId).Count(&count)
+	if err := dbBefore.Error; err != nil {
+		return nil, models.PaginationData{}, err
+	}
 
-	if err := r.db.Preload("OldWorks").Where("applicant_id = ?", userId).Scopes(Paginate(page, 5)).Find(&resumes).Error; err != nil {
+	pageSize := int64(5)
+	pag := models.PaginationData{}
+	pag.Get(count, page, pageSize)
+
+	if err := dbBefore.Order("updated_at desc").Scopes(Paginate(page, pageSize)).
+		Preload("OldWorks").Find(&resumes).Error; err != nil {
 		return nil, models.PaginationData{}, err
 	}
 	return resumes, pag, nil

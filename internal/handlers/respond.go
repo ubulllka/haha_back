@@ -17,9 +17,11 @@ func (h *Handler) createRespond(c *gin.Context) {
 	userRole, err := getUserRole(c)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
 	}
 	if err := h.services.CreateRespond(userRole, input); err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
 	}
 	c.JSON(http.StatusOK, statusResponse{"ok"})
 }
@@ -40,6 +42,7 @@ func (h *Handler) getMyRespond(c *gin.Context) {
 
 		if err != nil {
 			newErrorResponse(c, http.StatusInternalServerError, err.Error())
+			return
 		}
 
 		c.JSON(http.StatusOK, map[string]interface{}{
@@ -48,31 +51,55 @@ func (h *Handler) getMyRespond(c *gin.Context) {
 		})
 
 	case models.EMPLOYER:
-		//list, pag, err := h.services.Vacancy.GetEmplAllVacancies(userId, int64(page))
-		//
-		//if err != nil {
-		//	newErrorResponse(c, http.StatusInternalServerError, err.Error())
-		//}
-		//
-		//c.JSON(http.StatusOK, map[string]interface{}{
-		//	"list": list,
-		//	"pag":  pag,
-		//})
+		list, pag, err := h.services.Respond.GetMyRespondEmpl(userId, int64(page))
+
+		if err != nil {
+			newErrorResponse(c, http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		c.JSON(http.StatusOK, map[string]interface{}{
+			"list": list,
+			"pag":  pag,
+		})
 	}
 }
 
-//func (h *Handler) getOtherRespond(c *gin.Context) {
-//	page, err := strconv.Atoi(c.Query("page"))
-//	if err != nil {
-//		newErrorResponse(c, http.StatusBadRequest, "invalid page param")
-//		return
-//	}
-//
-//	userRole, _ := getUserRole(c)
-//	userId, _ := getUserId(c)
-//
-//	c.JSON(http.StatusOK, map[string]interface{}{
-//		"list": vacancies,
-//		"pag":  pag,
-//	})
-//}
+func (h *Handler) getOtherRespond(c *gin.Context) {
+	page, err := strconv.Atoi(c.Query("page"))
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "invalid page param")
+		return
+	}
+
+	userRole, _ := getUserRole(c)
+	userId, _ := getUserId(c)
+
+	switch userRole {
+	case models.APPLICANT:
+		list, pag, err := h.services.Respond.GetOtherRespondAppl(userId, int64(page))
+
+		if err != nil {
+			newErrorResponse(c, http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		c.JSON(http.StatusOK, map[string]interface{}{
+			"list": list,
+			"pag":  pag,
+		})
+
+	case models.EMPLOYER:
+		list, pag, err := h.services.Respond.GetOtherRespondEmpl(userId, int64(page))
+
+		if err != nil {
+			newErrorResponse(c, http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		c.JSON(http.StatusOK, map[string]interface{}{
+			"list": list,
+			"pag":  pag,
+		})
+	}
+}

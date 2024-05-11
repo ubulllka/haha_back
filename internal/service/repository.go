@@ -20,7 +20,7 @@ type User interface {
 }
 
 type Vacancy interface {
-	GetAll(page int64) ([]models.Vacancy, models.PaginationData, error)
+	GetAll() ([]models.Vacancy, error)
 	Search(page int64, q string) ([]models.Vacancy, models.PaginationData, error)
 	GetEmplAll(userId uint, page int64) ([]models.Vacancy, models.PaginationData, error)
 	GetOne(vacancyId uint) (models.Vacancy, error)
@@ -30,7 +30,7 @@ type Vacancy interface {
 }
 
 type Resume interface {
-	GetAll(page int64) ([]models.Resume, models.PaginationData, error)
+	GetAll() ([]models.Resume, error)
 	Search(page int64, q string) ([]models.Resume, models.PaginationData, error)
 	GetApplAll(userId uint, page int64) ([]models.Resume, models.PaginationData, error)
 	GetOne(resumeId uint) (models.Resume, error)
@@ -50,9 +50,9 @@ type Respond interface {
 	CreateResToVac(respond DTO.RespondModel) error
 	CreateVacToRes(respond DTO.RespondModel) error
 	GetMyRespondAppl(userId uint, page int64) ([]DTO.RespondVacancy, models.PaginationData, error)
-	GetMyRespondEmpl(userId uint, page int64) ([]models.VacToRes, models.PaginationData, error)
-	GetOtherRespondAppl(userId uint, page int64) ([]models.VacToRes, models.PaginationData, error)
-	GetOtherRespondEmpl(userId uint, page int64) ([]models.ResToVac, models.PaginationData, error)
+	GetMyRespondEmpl(userId uint, page int64) ([]DTO.RespondResume, models.PaginationData, error)
+	GetOtherRespondAppl(userId uint, page int64) ([]DTO.RespondVacancy, models.PaginationData, error)
+	GetOtherRespondEmpl(userId uint, page int64) ([]DTO.RespondResume, models.PaginationData, error)
 }
 
 type Repository struct {

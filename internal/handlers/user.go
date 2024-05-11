@@ -12,6 +12,7 @@ func (h *Handler) getAllUser(c *gin.Context) {
 	users, err := h.services.User.GetAllUsers()
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
 	}
 	c.JSON(http.StatusOK, users)
 }
@@ -22,6 +23,7 @@ func (h *Handler) getInfo(c *gin.Context) {
 	user, err := h.services.User.GetUser(id)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
 	}
 
 	c.JSON(http.StatusOK, user)
@@ -39,6 +41,7 @@ func (h *Handler) updateInfo(c *gin.Context) {
 
 	if err := h.services.User.UpdateUser(id, user); err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
 	}
 
 	c.JSON(http.StatusOK, statusResponse{"ok"})
@@ -76,6 +79,7 @@ func (h *Handler) getList(c *gin.Context) {
 
 		if err != nil {
 			newErrorResponse(c, http.StatusInternalServerError, err.Error())
+			return
 		}
 
 		c.JSON(http.StatusOK, map[string]interface{}{
@@ -88,6 +92,7 @@ func (h *Handler) getList(c *gin.Context) {
 
 		if err != nil {
 			newErrorResponse(c, http.StatusInternalServerError, err.Error())
+			return
 		}
 
 		c.JSON(http.StatusOK, map[string]interface{}{

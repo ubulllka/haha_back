@@ -11,21 +11,13 @@ import (
 )
 
 func (h *Handler) getAllVacancies(c *gin.Context) {
-	page, err := strconv.Atoi(c.Query("page"))
+	vacancies, err := h.services.Vacancy.GetAllVacancies()
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "invalid page param")
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	vacancies, pag, err := h.services.Vacancy.GetAllVacancies(int64(page))
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-	}
-
-	c.JSON(http.StatusOK, map[string]interface{}{
-		"list": vacancies,
-		"pag":  pag,
-	})
+	c.JSON(http.StatusOK, vacancies)
 }
 
 func (h *Handler) searchVacancies(c *gin.Context) {
@@ -40,6 +32,7 @@ func (h *Handler) searchVacancies(c *gin.Context) {
 	vacancies, pag, err := h.services.Vacancy.SearchVacancies(int64(page), q)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
 	}
 
 	c.JSON(http.StatusOK, map[string]interface{}{
@@ -65,15 +58,8 @@ func (h *Handler) getVacancy(c *gin.Context) {
 }
 
 func (h *Handler) createVacancy(c *gin.Context) {
-	userId, err := getUserId(c)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-	}
-
-	userRole, err := getUserRole(c)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-	}
+	userId, _ := getUserId(c)
+	userRole, _ := getUserRole(c)
 
 	if !strings.EqualFold(userRole, models.EMPLOYER) {
 		newErrorResponse(c, http.StatusForbidden, errors.New("not enough rights").Error())
@@ -89,6 +75,7 @@ func (h *Handler) createVacancy(c *gin.Context) {
 	id, err := h.services.Vacancy.CreateVacancy(userId, vacancy)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
 	}
 
 	c.JSON(http.StatusOK, map[string]interface{}{
@@ -97,15 +84,8 @@ func (h *Handler) createVacancy(c *gin.Context) {
 }
 
 func (h Handler) updateVacancy(c *gin.Context) {
-	userId, err := getUserId(c)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-	}
-
-	userRole, err := getUserRole(c)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-	}
+	userId, _ := getUserId(c)
+	userRole, _ := getUserRole(c)
 
 	if !strings.EqualFold(userRole, models.EMPLOYER) && !strings.EqualFold(userRole, models.ADMIN) {
 		newErrorResponse(c, http.StatusForbidden, errors.New("not enough rights").Error())
@@ -127,21 +107,15 @@ func (h Handler) updateVacancy(c *gin.Context) {
 
 	if err := h.services.Vacancy.UpdateVacancy(userId, uint(vacancyId), userRole, vacancy); err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
 	}
 
 	c.JSON(http.StatusOK, statusResponse{"ok"})
 }
 
 func (h Handler) deleteVacancy(c *gin.Context) {
-	userId, err := getUserId(c)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-	}
-
-	userRole, err := getUserRole(c)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-	}
+	userId, _ := getUserId(c)
+	userRole, _ := getUserRole(c)
 
 	if !strings.EqualFold(userRole, models.EMPLOYER) && !strings.EqualFold(userRole, models.ADMIN) {
 		newErrorResponse(c, http.StatusForbidden, errors.New("not enough rights").Error())
@@ -156,6 +130,7 @@ func (h Handler) deleteVacancy(c *gin.Context) {
 
 	if err := h.services.Vacancy.DeleteVacancy(userId, uint(vacancyId), userRole); err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
 	}
 
 	c.JSON(http.StatusOK, statusResponse{"ok"})

@@ -11,21 +11,13 @@ import (
 )
 
 func (h *Handler) getAllResumes(c *gin.Context) {
-	page, err := strconv.Atoi(c.Query("page"))
+	resumes, err := h.services.Resume.GetAllResumes()
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "invalid page param")
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	resumes, pag, err := h.services.Resume.GetAllResumes(int64(page))
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-	}
-
-	c.JSON(http.StatusOK, map[string]interface{}{
-		"list": resumes,
-		"pag":  pag,
-	})
+	c.JSON(http.StatusOK, resumes)
 }
 
 func (h *Handler) searchResumes(c *gin.Context) {
@@ -40,6 +32,7 @@ func (h *Handler) searchResumes(c *gin.Context) {
 	resumes, pag, err := h.services.Resume.SearchResumes(int64(page), q)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
 	}
 
 	c.JSON(http.StatusOK, map[string]interface{}{
@@ -65,15 +58,8 @@ func (h *Handler) getResume(c *gin.Context) {
 }
 
 func (h *Handler) createResume(c *gin.Context) {
-	userId, err := getUserId(c)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-	}
-
-	userRole, err := getUserRole(c)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-	}
+	userId, _ := getUserId(c)
+	userRole, _ := getUserRole(c)
 
 	if !strings.EqualFold(userRole, models.APPLICANT) {
 		newErrorResponse(c, http.StatusForbidden, errors.New("not enough rights").Error())
@@ -89,6 +75,7 @@ func (h *Handler) createResume(c *gin.Context) {
 	id, err := h.services.Resume.CreateResume(userId, resume)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
 	}
 
 	c.JSON(http.StatusOK, map[string]interface{}{
@@ -97,15 +84,8 @@ func (h *Handler) createResume(c *gin.Context) {
 }
 
 func (h *Handler) updateResume(c *gin.Context) {
-	userId, err := getUserId(c)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-	}
-
-	userRole, err := getUserRole(c)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-	}
+	userId, _ := getUserId(c)
+	userRole, _ := getUserRole(c)
 
 	if !strings.EqualFold(userRole, models.APPLICANT) && !strings.EqualFold(userRole, models.ADMIN) {
 		newErrorResponse(c, http.StatusForbidden, errors.New("not enough rights").Error())
@@ -127,21 +107,15 @@ func (h *Handler) updateResume(c *gin.Context) {
 
 	if err := h.services.Resume.UpdateResume(userId, uint(resumeId), userRole, resume); err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
 	}
 
 	c.JSON(http.StatusOK, statusResponse{"ok"})
 }
 
 func (h *Handler) deleteResume(c *gin.Context) {
-	userId, err := getUserId(c)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-	}
-
-	userRole, err := getUserRole(c)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-	}
+	userId, _ := getUserId(c)
+	userRole, _ := getUserRole(c)
 
 	if !strings.EqualFold(userRole, models.APPLICANT) && !strings.EqualFold(userRole, models.ADMIN) {
 		newErrorResponse(c, http.StatusForbidden, errors.New("not enough rights").Error())
@@ -156,6 +130,7 @@ func (h *Handler) deleteResume(c *gin.Context) {
 
 	if err := h.services.Resume.DeleteResume(userId, uint(resumeId), userRole); err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
 	}
 
 	c.JSON(http.StatusOK, statusResponse{"ok"})

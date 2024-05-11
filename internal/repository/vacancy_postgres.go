@@ -14,25 +14,30 @@ func NewVacancyPostgres(db *gorm.DB) *VacancyPostgres {
 	return &VacancyPostgres{db: db}
 }
 
-func (r *VacancyPostgres) GetAll(page int64) ([]models.Vacancy, models.PaginationData, error) {
+func (r *VacancyPostgres) GetAll() ([]models.Vacancy, error) {
 	var vacancies []models.Vacancy
 
-	pag := models.PaginationData{}
-	pag.GetPagination(r.db, page, "", &models.Vacancy{})
-
-	if err := r.db.Scopes(Paginate(page, 10)).Find(&vacancies).Error; err != nil {
-		return nil, models.PaginationData{}, err
+	if err := r.db.Order("updated_at desc").Find(&vacancies).Error; err != nil {
+		return nil, err
 	}
-	return vacancies, pag, nil
+	return vacancies, nil
 }
 
 func (r *VacancyPostgres) Search(page int64, q string) ([]models.Vacancy, models.PaginationData, error) {
 	var vacancies []models.Vacancy
 
+	var count int64
+	query := "%" + q + "%"
+	dbBefore := r.db.Model(&models.Vacancy{}).Where("post LIKE ?", query).Count(&count)
+	if err := dbBefore.Error; err != nil {
+		return nil, models.PaginationData{}, err
+	}
+	pageSize := int64(10)
 	pag := models.PaginationData{}
-	pag.GetPagination(r.db, page, q, &models.Vacancy{})
+	pag.Get(count, page, pageSize)
 
-	if err := r.db.Where("post LIKE ?", "%"+q+"%").Scopes(Paginate(page, 10)).Find(&vacancies).Error; err != nil {
+	if err := dbBefore.Order("updated_at desc").Scopes(Paginate(page, pageSize)).
+		Find(&vacancies).Error; err != nil {
 		return nil, models.PaginationData{}, err
 	}
 	return vacancies, pag, nil
@@ -41,10 +46,18 @@ func (r *VacancyPostgres) Search(page int64, q string) ([]models.Vacancy, models
 func (r *VacancyPostgres) GetEmplAll(userId uint, page int64) ([]models.Vacancy, models.PaginationData, error) {
 	var vacancies []models.Vacancy
 
-	pag := models.PaginationData{}
-	pag.GetPagination(r.db, page, "", models.Vacancy{})
+	var count int64
+	dbBefore := r.db.Model(&models.Vacancy{}).Where("employer_id = ?", userId).Count(&count)
+	if err := dbBefore.Error; err != nil {
+		return nil, models.PaginationData{}, err
+	}
 
-	if err := r.db.Where("employer_id = ?", userId).Scopes(Paginate(page, 5)).Find(&vacancies).Error; err != nil {
+	pageSize := int64(5)
+	pag := models.PaginationData{}
+	pag.Get(count, page, pageSize)
+
+	if err := dbBefore.Order("updated_at desc").Scopes(Paginate(page, pageSize)).
+		Find(&vacancies).Error; err != nil {
 		return nil, models.PaginationData{}, err
 	}
 	return vacancies, pag, nil
