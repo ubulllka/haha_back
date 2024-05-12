@@ -33,12 +33,14 @@ func (h *Handler) getMyRespond(c *gin.Context) {
 		return
 	}
 
+	filter := c.Query("filter")
+
 	userRole, _ := getUserRole(c)
 	userId, _ := getUserId(c)
 
 	switch userRole {
 	case models.APPLICANT:
-		list, pag, err := h.services.Respond.GetMyRespondAppl(userId, int64(page))
+		list, pag, err := h.services.Respond.GetMyRespondAppl(userId, int64(page), filter)
 
 		if err != nil {
 			newErrorResponse(c, http.StatusInternalServerError, err.Error())
@@ -51,7 +53,7 @@ func (h *Handler) getMyRespond(c *gin.Context) {
 		})
 
 	case models.EMPLOYER:
-		list, pag, err := h.services.Respond.GetMyRespondEmpl(userId, int64(page))
+		list, pag, err := h.services.Respond.GetMyRespondEmpl(userId, int64(page), filter)
 
 		if err != nil {
 			newErrorResponse(c, http.StatusInternalServerError, err.Error())
@@ -72,12 +74,14 @@ func (h *Handler) getOtherRespond(c *gin.Context) {
 		return
 	}
 
+	filter := c.Query("filter")
+
 	userRole, _ := getUserRole(c)
 	userId, _ := getUserId(c)
 
 	switch userRole {
 	case models.APPLICANT:
-		list, pag, err := h.services.Respond.GetOtherRespondAppl(userId, int64(page))
+		list, pag, err := h.services.Respond.GetOtherRespondAppl(userId, int64(page), filter)
 
 		if err != nil {
 			newErrorResponse(c, http.StatusInternalServerError, err.Error())
@@ -90,7 +94,7 @@ func (h *Handler) getOtherRespond(c *gin.Context) {
 		})
 
 	case models.EMPLOYER:
-		list, pag, err := h.services.Respond.GetOtherRespondEmpl(userId, int64(page))
+		list, pag, err := h.services.Respond.GetOtherRespondEmpl(userId, int64(page), filter)
 
 		if err != nil {
 			newErrorResponse(c, http.StatusInternalServerError, err.Error())

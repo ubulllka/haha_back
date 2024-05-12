@@ -2,7 +2,7 @@ package DTO
 
 import "time"
 
-type RespondResume struct {
+type Respond struct {
 	ID          uint      `json:"id"`
 	Post        string    `json:"post"`
 	Description string    `json:"description"`

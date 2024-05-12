@@ -37,18 +37,18 @@ func (s *RespondService) CreateRespond(userRole string, respond DTO.RespondModel
 	return nil
 }
 
-func (s *RespondService) GetMyRespondAppl(userId uint, page int64) ([]DTO.RespondVacancy, models.PaginationData, error) {
-	return s.repoRespond.GetMyRespondAppl(userId, page)
+func (s *RespondService) GetMyRespondAppl(userId uint, page int64, filter string) ([]DTO.RespondVacancy, models.PaginationData, error) {
+	return s.repoRespond.GetMyRespondAppl(userId, page, filter)
 }
 
-func (s *RespondService) GetMyRespondEmpl(userId uint, page int64) ([]DTO.RespondResume, models.PaginationData, error) {
-	return s.repoRespond.GetMyRespondEmpl(userId, page)
+func (s *RespondService) GetMyRespondEmpl(userId uint, page int64, filter string) ([]DTO.RespondResume, models.PaginationData, error) {
+	return s.repoRespond.GetMyRespondEmpl(userId, page, filter)
 }
 
-func (s *RespondService) GetOtherRespondAppl(userId uint, page int64) ([]DTO.RespondVacancy, models.PaginationData, error) {
-	return s.repoRespond.GetOtherRespondAppl(userId, page)
+func (s *RespondService) GetOtherRespondAppl(userId uint, page int64, filter string) ([]DTO.RespondVacancy, models.PaginationData, error) {
+	return s.repoRespond.GetOtherRespondAppl(userId, page, filter)
 }
 
-func (s *RespondService) GetOtherRespondEmpl(userId uint, page int64) ([]DTO.RespondResume, models.PaginationData, error) {
-	return s.repoRespond.GetOtherRespondEmpl(userId, page)
+func (s *RespondService) GetOtherRespondEmpl(userId uint, page int64, filter string) ([]DTO.RespondResume, models.PaginationData, error) {
+	return s.repoRespond.GetOtherRespondEmpl(userId, page, filter)
 }

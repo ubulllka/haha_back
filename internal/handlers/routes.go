@@ -63,6 +63,7 @@ func (h *Handler) InitRouter() *gin.Engine {
 		user := api.Group("/user")
 		{
 			user.GET("/", h.getInfo)
+			user.GET("/:id/is", h.isUser)
 			user.PATCH("/", h.updateInfo)
 			user.GET("/listmypag", h.getMyListPag)
 			user.GET("/list", h.getList)

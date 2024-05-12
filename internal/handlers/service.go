@@ -49,10 +49,10 @@ type Work interface {
 
 type Respond interface {
 	CreateRespond(userRole string, respond DTO.RespondModel) error
-	GetMyRespondAppl(userId uint, page int64) ([]DTO.RespondVacancy, models.PaginationData, error)
-	GetMyRespondEmpl(userId uint, page int64) ([]DTO.RespondResume, models.PaginationData, error)
-	GetOtherRespondAppl(userId uint, page int64) ([]DTO.RespondVacancy, models.PaginationData, error)
-	GetOtherRespondEmpl(userId uint, page int64) ([]DTO.RespondResume, models.PaginationData, error)
+	GetMyRespondAppl(userId uint, page int64, filter string) ([]DTO.RespondVacancy, models.PaginationData, error)
+	GetMyRespondEmpl(userId uint, page int64, filter string) ([]DTO.RespondResume, models.PaginationData, error)
+	GetOtherRespondAppl(userId uint, page int64, filter string) ([]DTO.RespondVacancy, models.PaginationData, error)
+	GetOtherRespondEmpl(userId uint, page int64, filter string) ([]DTO.RespondResume, models.PaginationData, error)
 }
 
 type Service struct {

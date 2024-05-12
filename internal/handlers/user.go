@@ -63,6 +63,18 @@ func (h *Handler) getUser(c *gin.Context) {
 	c.JSON(http.StatusOK, user)
 }
 
+func (h *Handler) isUser(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
+		return
+	}
+	userId, _ := getUserId(c)
+
+	c.JSON(http.StatusOK, statusResponse{strconv.FormatBool(userId == uint(id))})
+
+}
+
 func (h *Handler) getMyListPag(c *gin.Context) {
 	page, err := strconv.Atoi(c.Query("page"))
 	if err != nil {
