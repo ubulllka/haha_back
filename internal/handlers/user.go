@@ -63,7 +63,7 @@ func (h *Handler) getUser(c *gin.Context) {
 	c.JSON(http.StatusOK, user)
 }
 
-func (h *Handler) getList(c *gin.Context) {
+func (h *Handler) getMyListPag(c *gin.Context) {
 	page, err := strconv.Atoi(c.Query("page"))
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, "invalid page param")
@@ -75,7 +75,7 @@ func (h *Handler) getList(c *gin.Context) {
 
 	switch userRole {
 	case models.APPLICANT:
-		list, pag, err := h.services.Resume.GetApplAllResumes(userId, int64(page))
+		list, pag, err := h.services.Resume.GetApplAllResumesPag(userId, int64(page))
 
 		if err != nil {
 			newErrorResponse(c, http.StatusInternalServerError, err.Error())
@@ -88,7 +88,7 @@ func (h *Handler) getList(c *gin.Context) {
 		})
 
 	case models.EMPLOYER:
-		list, pag, err := h.services.Vacancy.GetEmplAllVacancies(userId, int64(page))
+		list, pag, err := h.services.Vacancy.GetEmplAllVacanciesPag(userId, int64(page))
 
 		if err != nil {
 			newErrorResponse(c, http.StatusInternalServerError, err.Error())
@@ -99,6 +99,83 @@ func (h *Handler) getList(c *gin.Context) {
 			"list": list,
 			"pag":  pag,
 		})
+	}
+}
+
+func (h *Handler) getListPag(c *gin.Context) {
+	page, err := strconv.Atoi(c.Query("page"))
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "invalid page param")
+		return
+	}
+
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
+		return
+	}
+
+	user, err := h.services.User.GetUser(uint(id))
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	userRole := user.Role
+
+	switch userRole {
+	case models.APPLICANT:
+		list, pag, err := h.services.Resume.GetApplAllResumesPag(uint(id), int64(page))
+
+		if err != nil {
+			newErrorResponse(c, http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		c.JSON(http.StatusOK, map[string]interface{}{
+			"list": list,
+			"pag":  pag,
+		})
+
+	case models.EMPLOYER:
+		list, pag, err := h.services.Vacancy.GetEmplAllVacanciesPag(uint(id), int64(page))
+
+		if err != nil {
+			newErrorResponse(c, http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		c.JSON(http.StatusOK, map[string]interface{}{
+			"list": list,
+			"pag":  pag,
+		})
+	}
+}
+
+func (h *Handler) getList(c *gin.Context) {
+	userRole, _ := getUserRole(c)
+	userId, _ := getUserId(c)
+
+	switch userRole {
+	case models.APPLICANT:
+		list, err := h.services.Resume.GetApplAllResumes(userId)
+
+		if err != nil {
+			newErrorResponse(c, http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		c.JSON(http.StatusOK, list)
+
+	case models.EMPLOYER:
+		list, err := h.services.Vacancy.GetEmplAllVacancies(userId)
+
+		if err != nil {
+			newErrorResponse(c, http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		c.JSON(http.StatusOK, list)
 	}
 
 }

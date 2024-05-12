@@ -43,7 +43,7 @@ func (r *ResumePostgres) Search(page int64, q string) ([]models.Resume, models.P
 	return resumes, pag, nil
 }
 
-func (r *ResumePostgres) GetApplAll(userId uint, page int64) ([]models.Resume, models.PaginationData, error) {
+func (r *ResumePostgres) GetApplAllPag(userId uint, page int64) ([]models.Resume, models.PaginationData, error) {
 	var resumes []models.Resume
 
 	var count int64
@@ -61,6 +61,17 @@ func (r *ResumePostgres) GetApplAll(userId uint, page int64) ([]models.Resume, m
 		return nil, models.PaginationData{}, err
 	}
 	return resumes, pag, nil
+}
+
+func (r *ResumePostgres) GetApplAll(userId uint) ([]DTO.ItemList, error) {
+	var resumes []DTO.ItemList
+
+	if err := r.db.Table("resumes").Select("id, post").Where("applicant_id = ?", userId).
+		Order("updated_at desc").Find(&resumes).Error; err != nil {
+		return nil, err
+	}
+
+	return resumes, nil
 }
 
 func (r *ResumePostgres) GetOne(resumeId uint) (models.Resume, error) {

@@ -22,7 +22,8 @@ type User interface {
 type Vacancy interface {
 	GetAllVacancies() ([]models.Vacancy, error)
 	SearchVacancies(page int64, q string) ([]models.Vacancy, models.PaginationData, error)
-	GetEmplAllVacancies(userId uint, page int64) ([]models.Vacancy, models.PaginationData, error)
+	GetEmplAllVacanciesPag(userId uint, page int64) ([]models.Vacancy, models.PaginationData, error)
+	GetEmplAllVacancies(userId uint) ([]DTO.ItemList, error)
 	GetVacancy(vacancyId uint) (models.Vacancy, error)
 	CreateVacancy(userId uint, vacancy DTO.VacancyCreate) (uint, error)
 	UpdateVacancy(userId, vacancyId uint, userRole string, vacancy DTO.VacancyUpdate) error
@@ -32,7 +33,8 @@ type Vacancy interface {
 type Resume interface {
 	GetAllResumes() ([]models.Resume, error)
 	SearchResumes(page int64, q string) ([]models.Resume, models.PaginationData, error)
-	GetApplAllResumes(userId uint, page int64) ([]models.Resume, models.PaginationData, error)
+	GetApplAllResumesPag(userId uint, page int64) ([]models.Resume, models.PaginationData, error)
+	GetApplAllResumes(userId uint) ([]DTO.ItemList, error)
 	GetResume(resumeId uint) (models.Resume, error)
 	CreateResume(userId uint, resume DTO.ResumeCreate) (uint, error)
 	UpdateResume(userId, resumeId uint, userRole string, resume DTO.ResumeUpdate) error

@@ -24,8 +24,12 @@ func (s *ResumeService) SearchResumes(page int64, q string) ([]models.Resume, mo
 	return s.repo.Search(page, q)
 }
 
-func (s *ResumeService) GetApplAllResumes(id uint, page int64) ([]models.Resume, models.PaginationData, error) {
-	return s.repo.GetApplAll(id, page)
+func (s *ResumeService) GetApplAllResumesPag(id uint, page int64) ([]models.Resume, models.PaginationData, error) {
+	return s.repo.GetApplAllPag(id, page)
+}
+
+func (s *ResumeService) GetApplAllResumes(id uint) ([]DTO.ItemList, error) {
+	return s.repo.GetApplAll(id)
 }
 
 func (s *ResumeService) GetResume(resumeId uint) (models.Resume, error) {

@@ -43,7 +43,7 @@ func (r *VacancyPostgres) Search(page int64, q string) ([]models.Vacancy, models
 	return vacancies, pag, nil
 }
 
-func (r *VacancyPostgres) GetEmplAll(userId uint, page int64) ([]models.Vacancy, models.PaginationData, error) {
+func (r *VacancyPostgres) GetEmplAllPag(userId uint, page int64) ([]models.Vacancy, models.PaginationData, error) {
 	var vacancies []models.Vacancy
 
 	var count int64
@@ -61,6 +61,17 @@ func (r *VacancyPostgres) GetEmplAll(userId uint, page int64) ([]models.Vacancy,
 		return nil, models.PaginationData{}, err
 	}
 	return vacancies, pag, nil
+}
+
+func (r *VacancyPostgres) GetEmplAll(userId uint) ([]DTO.ItemList, error) {
+	var vacancies []DTO.ItemList
+
+	if err := r.db.Table("vacancies").Select("id, post").Where("employer_id = ?", userId).
+		Order("updated_at desc").Find(&vacancies).Error; err != nil {
+		return nil, err
+	}
+
+	return vacancies, nil
 }
 
 func (r *VacancyPostgres) GetOne(vacancyId uint) (models.Vacancy, error) {

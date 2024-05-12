@@ -1,7 +1,6 @@
 package service
 
 import (
-	"errors"
 	"haha/internal/models"
 	"haha/internal/models/DTO"
 )
@@ -17,20 +16,25 @@ func NewRespondService(repoRespond Respond, repoVac Vacancy, repoRes Resume) *Re
 }
 
 func (s *RespondService) CreateRespond(userRole string, respond DTO.RespondModel) error {
-	if _, err := s.repoVac.GetOne(respond.VacancyId); err != nil {
-		return err
-	}
-	if _, err := s.repoRes.GetOne(respond.ResumeId); err != nil {
-		return err
-	}
 	switch userRole {
 	case models.APPLICANT:
+		if _, err := s.repoRes.GetOne(respond.MyId); err != nil {
+			return err
+		}
+		if _, err := s.repoVac.GetOne(respond.ModalId); err != nil {
+			return err
+		}
 		return s.repoRespond.CreateResToVac(respond)
 	case models.EMPLOYER:
-
+		if _, err := s.repoVac.GetOne(respond.MyId); err != nil {
+			return err
+		}
+		if _, err := s.repoRes.GetOne(respond.ModalId); err != nil {
+			return err
+		}
 		return s.repoRespond.CreateVacToRes(respond)
 	}
-	return errors.New("wrong user's role")
+	return nil
 }
 
 func (s *RespondService) GetMyRespondAppl(userId uint, page int64) ([]DTO.RespondVacancy, models.PaginationData, error) {

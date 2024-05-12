@@ -22,7 +22,8 @@ type User interface {
 type Vacancy interface {
 	GetAll() ([]models.Vacancy, error)
 	Search(page int64, q string) ([]models.Vacancy, models.PaginationData, error)
-	GetEmplAll(userId uint, page int64) ([]models.Vacancy, models.PaginationData, error)
+	GetEmplAllPag(userId uint, page int64) ([]models.Vacancy, models.PaginationData, error)
+	GetEmplAll(userId uint) ([]DTO.ItemList, error)
 	GetOne(vacancyId uint) (models.Vacancy, error)
 	Create(vacancy models.Vacancy) (uint, error)
 	Update(vacancyId uint, vacancy DTO.VacancyUpdate) error
@@ -32,7 +33,8 @@ type Vacancy interface {
 type Resume interface {
 	GetAll() ([]models.Resume, error)
 	Search(page int64, q string) ([]models.Resume, models.PaginationData, error)
-	GetApplAll(userId uint, page int64) ([]models.Resume, models.PaginationData, error)
+	GetApplAllPag(userId uint, page int64) ([]models.Resume, models.PaginationData, error)
+	GetApplAll(userId uint) ([]DTO.ItemList, error)
 	GetOne(resumeId uint) (models.Resume, error)
 	Create(resume models.Resume) (uint, error)
 	Update(resumeId uint, resume DTO.ResumeUpdate) error

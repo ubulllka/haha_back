@@ -41,6 +41,7 @@ func (h *Handler) InitRouter() *gin.Engine {
 		userAnon := apiAnon.Group("/user")
 		{
 			userAnon.GET("/:id", h.getUser)
+			userAnon.GET("/:id/listpag", h.getListPag)
 		}
 		vacAnon := apiAnon.Group("/vac")
 		{
@@ -63,6 +64,7 @@ func (h *Handler) InitRouter() *gin.Engine {
 		{
 			user.GET("/", h.getInfo)
 			user.PATCH("/", h.updateInfo)
+			user.GET("/listmypag", h.getMyListPag)
 			user.GET("/list", h.getList)
 		}
 
