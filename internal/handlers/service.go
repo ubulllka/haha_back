@@ -21,10 +21,14 @@ type User interface {
 
 type Vacancy interface {
 	GetAllVacancies() ([]models.Vacancy, error)
-	SearchVacancies(page int64, q string) ([]models.Vacancy, models.PaginationData, error)
+	SearchVacanciesAnon(page int64, q string) ([]models.Vacancy, models.PaginationData, error)
+	GetVacancyAnon(vacancyId uint) (models.Vacancy, error)
+	SearchVacancies(userId uint, page int64, q string) ([]DTO.VacancyDTO, models.PaginationData, error)
+	GetVacancy(userId, vacancyId uint) (DTO.VacancyDTO, error)
+
 	GetEmplAllVacanciesPag(userId uint, page int64) ([]models.Vacancy, models.PaginationData, error)
 	GetEmplAllVacancies(userId uint) ([]DTO.ItemList, error)
-	GetVacancy(vacancyId uint) (models.Vacancy, error)
+
 	CreateVacancy(userId uint, vacancy DTO.VacancyCreate) (uint, error)
 	UpdateVacancy(userId, vacancyId uint, userRole string, vacancy DTO.VacancyUpdate) error
 	DeleteVacancy(userId, vacancyId uint, userRole string) error
@@ -32,16 +36,21 @@ type Vacancy interface {
 
 type Resume interface {
 	GetAllResumes() ([]models.Resume, error)
-	SearchResumes(page int64, q string) ([]models.Resume, models.PaginationData, error)
+	SearchResumesAnon(page int64, q string) ([]models.Resume, models.PaginationData, error)
+	GetResumeAnon(resumeId uint) (models.Resume, error)
+	SearchResumes(userId uint, page int64, q string) ([]DTO.ResumeDTO, models.PaginationData, error)
+	GetResume(userId, resumeId uint) (DTO.ResumeDTO, error)
+
 	GetApplAllResumesPag(userId uint, page int64) ([]models.Resume, models.PaginationData, error)
 	GetApplAllResumes(userId uint) ([]DTO.ItemList, error)
-	GetResume(resumeId uint) (models.Resume, error)
+
 	CreateResume(userId uint, resume DTO.ResumeCreate) (uint, error)
 	UpdateResume(userId, resumeId uint, userRole string, resume DTO.ResumeUpdate) error
 	DeleteResume(userId, resumeId uint, userRole string) error
 }
 
 type Work interface {
+	GetListWork(resumeId uint) ([]models.Work, error)
 	CreateWork(userId, resumeId uint, userRole string, work DTO.WorkCreate) (uint, error)
 	UpdateWork(userId, workId uint, userRole string, work DTO.WorkUpdate) error
 	DeleteWork(userId, workId uint, userRole string) error
@@ -49,10 +58,13 @@ type Work interface {
 
 type Respond interface {
 	CreateRespond(userRole string, respond DTO.RespondModel) error
-	GetMyRespondAppl(userId uint, page int64, filter string) ([]DTO.RespondVacancy, models.PaginationData, error)
-	GetMyRespondEmpl(userId uint, page int64, filter string) ([]DTO.RespondResume, models.PaginationData, error)
-	GetOtherRespondAppl(userId uint, page int64, filter string) ([]DTO.RespondVacancy, models.PaginationData, error)
-	GetOtherRespondEmpl(userId uint, page int64, filter string) ([]DTO.RespondResume, models.PaginationData, error)
+	UpdateRespond(userId uint, userRole string, id uint, respond DTO.RespondUpdate) error
+	GetMyRespond(userId uint, userRole string, id uint) (DTO.Respond, error)
+	GetOtherRespond(userId uint, userRole string, id uint) (DTO.Respond, error)
+	GetMyAllResponds(userId uint, userRole string, page int64, filter string) ([]DTO.Respond, models.PaginationData, error)
+	GetOtherAllResponds(userId uint, userRole string, page int64, filter string) ([]DTO.Respond, models.PaginationData, error)
+	DeleteMyRespond(userId uint, userRole string, respondId uint) error
+	DeleteOtherRespond(userId uint, userRole string, respondId uint) error
 }
 
 type Service struct {

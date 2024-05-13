@@ -15,7 +15,15 @@ func NewWorkPostgres(db *gorm.DB) *WorkPostgres {
 	return &WorkPostgres{db: db}
 }
 
-func (r WorkPostgres) GetOne(userId uint) (models.Work, error) {
+func (r *WorkPostgres) GetList(resumeId uint) ([]models.Work, error) {
+	var works []models.Work
+	if err := r.db.Where("resume_id = ?", resumeId).Find(&works).Error; err != nil {
+		return nil, err
+	}
+	return works, nil
+}
+
+func (r *WorkPostgres) GetOne(userId uint) (models.Work, error) {
 	var work models.Work
 	if err := r.db.First(&work, userId).Error; err != nil {
 		return models.Work{}, err

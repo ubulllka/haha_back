@@ -15,6 +15,22 @@ func NewRespondPostgres(db *gorm.DB) *RespondPostgres {
 	return &RespondPostgres{db: db}
 }
 
+func (r *RespondPostgres) GetResToVac(id uint) (models.ResToVac, error) {
+	var resToVac models.ResToVac
+	if err := r.db.First(&resToVac, id).Error; err != nil {
+		return models.ResToVac{}, err
+	}
+	return resToVac, nil
+}
+
+func (r *RespondPostgres) GetVacToRes(id uint) (models.VacToRes, error) {
+	var vacToRes models.VacToRes
+	if err := r.db.First(&vacToRes, id).Error; err != nil {
+		return models.VacToRes{}, err
+	}
+	return vacToRes, nil
+}
+
 func (r *RespondPostgres) CreateResToVac(respond DTO.RespondModel) error {
 	resToVac := &models.ResToVac{
 		ResumeID:  respond.MyId,
@@ -35,8 +51,63 @@ func (r *RespondPostgres) CreateVacToRes(respond DTO.RespondModel) error {
 	return r.db.Create(&vacToRes).Error
 }
 
-func (r *RespondPostgres) GetMyRespondAppl(userId uint, page int64, filter string) ([]DTO.RespondVacancy, models.PaginationData, error) {
-	var result []DTO.RespondVacancy
+func (r *RespondPostgres) UpdateResToVac(id uint, respond DTO.RespondUpdate) error {
+	return r.db.Model(&models.ResToVac{}).Where("id = ?", id).Update("status", respond.Status).Error
+}
+func (r *RespondPostgres) UpdateVacToRes(id uint, respond DTO.RespondUpdate) error {
+	return r.db.Model(&models.VacToRes{}).Where("id = ?", id).Update("status", respond.Status).Error
+}
+
+func (r *RespondPostgres) DeleteResToVac(id uint) error {
+	return r.db.Delete(&models.ResToVac{}, id).Error
+}
+
+func (r *RespondPostgres) DeleteVacToRes(id uint) error {
+	return r.db.Delete(&models.VacToRes{}, id).Error
+}
+
+func (r *RespondPostgres) GetMyRespondAppl(id uint) (DTO.Respond, error) {
+	var result DTO.Respond
+	if err := r.db.Table("res_to_vacs").
+		Select("res_to_vacs.id as id, vacancies.id as vacancy_id, status, letter, post, description, resume_id, res_to_vacs.created_at as created_at, res_to_vacs.updated_at as updated_at").
+		Joins("Inner join vacancies on res_to_vacs.vacancy_id=vacancies.id").First(&result, id).Error; err != nil {
+		return DTO.Respond{}, err
+	}
+	return result, nil
+}
+
+func (r *RespondPostgres) GetMyRespondEmpl(id uint) (DTO.Respond, error) {
+	var result DTO.Respond
+	if err := r.db.Table("vac_to_res").
+		Select("vac_to_res.id as id, resumes.id as resume_id, status, letter, post, description, vacancy_id, vac_to_res.created_at as created_at, vac_to_res.updated_at as updated_at").
+		Joins("Inner join resumes on vac_to_res.resume_id=resumes.id").First(&result, id).Error; err != nil {
+		return DTO.Respond{}, err
+	}
+	return result, nil
+}
+
+func (r *RespondPostgres) GetOtherRespondAppl(id uint) (DTO.Respond, error) {
+	var result DTO.Respond
+	if err := r.db.Table("vac_to_res").
+		Select("vac_to_res.id as id, vacancies.id as vacancy_id, status, letter, post, description, resume_id, vac_to_res.created_at as created_at, vac_to_res.updated_at as updated_at").
+		Joins("Inner join vacancies on vac_to_res.vacancy_id=vacancies.id").First(&result, id).Error; err != nil {
+		return DTO.Respond{}, err
+	}
+	return result, nil
+}
+
+func (r *RespondPostgres) GetOtherRespondEmpl(id uint) (DTO.Respond, error) {
+	var result DTO.Respond
+	if err := r.db.Table("res_to_vacs").
+		Select("res_to_vacs.id as id, resumes.id as resume_id, status, letter, post, description, vacancy_id, res_to_vacs.created_at as created_at, res_to_vacs.updated_at as updated_at").
+		Joins("Inner join resumes on res_to_vacs.resume_id=resumes.id").First(&result, id).Error; err != nil {
+		return DTO.Respond{}, err
+	}
+	return result, nil
+}
+
+func (r *RespondPostgres) GetMyAllRespondsAppl(userId uint, page int64, filter string) ([]DTO.Respond, models.PaginationData, error) {
+	var result []DTO.Respond
 	var ids []string
 	var cnt int64
 	if err := r.db.Model(&models.Resume{}).Where("applicant_id = ?", userId).Pluck("id", &ids).Error; err != nil {
@@ -68,8 +139,8 @@ func (r *RespondPostgres) GetMyRespondAppl(userId uint, page int64, filter strin
 	return result, pag, nil
 }
 
-func (r *RespondPostgres) GetMyRespondEmpl(userId uint, page int64, filter string) ([]DTO.RespondResume, models.PaginationData, error) {
-	var result []DTO.RespondResume
+func (r *RespondPostgres) GetMyAllRespondsEmpl(userId uint, page int64, filter string) ([]DTO.Respond, models.PaginationData, error) {
+	var result []DTO.Respond
 	var ids []string
 	var cnt int64
 	if err := r.db.Model(&models.Vacancy{}).Where("employer_id = ?", userId).Pluck("id", &ids).Error; err != nil {
@@ -100,8 +171,8 @@ func (r *RespondPostgres) GetMyRespondEmpl(userId uint, page int64, filter strin
 	return result, pag, nil
 }
 
-func (r *RespondPostgres) GetOtherRespondAppl(userId uint, page int64, filter string) ([]DTO.RespondVacancy, models.PaginationData, error) {
-	var result []DTO.RespondVacancy
+func (r *RespondPostgres) GetOtherAllRespondsAppl(userId uint, page int64, filter string) ([]DTO.Respond, models.PaginationData, error) {
+	var result []DTO.Respond
 	var ids []string
 	var cnt int64
 	if err := r.db.Model(&models.Resume{}).Where("applicant_id = ?", userId).Pluck("id", &ids).Error; err != nil {
@@ -133,8 +204,8 @@ func (r *RespondPostgres) GetOtherRespondAppl(userId uint, page int64, filter st
 	return result, pag, nil
 }
 
-func (r *RespondPostgres) GetOtherRespondEmpl(userId uint, page int64, filter string) ([]DTO.RespondResume, models.PaginationData, error) {
-	var result []DTO.RespondResume
+func (r *RespondPostgres) GetOtherAllRespondsEmpl(userId uint, page int64, filter string) ([]DTO.Respond, models.PaginationData, error) {
+	var result []DTO.Respond
 	var ids []string
 	var cnt int64
 	if err := r.db.Model(&models.Vacancy{}).Where("employer_id = ?", userId).Pluck("id", &ids).Error; err != nil {

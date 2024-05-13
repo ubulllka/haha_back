@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"haha/internal/models"
 	"haha/internal/models/DTO"
 )
@@ -18,18 +19,18 @@ func NewRespondService(repoRespond Respond, repoVac Vacancy, repoRes Resume) *Re
 func (s *RespondService) CreateRespond(userRole string, respond DTO.RespondModel) error {
 	switch userRole {
 	case models.APPLICANT:
-		if _, err := s.repoRes.GetOne(respond.MyId); err != nil {
+		if _, err := s.repoRes.GetOneAnon(respond.MyId); err != nil {
 			return err
 		}
-		if _, err := s.repoVac.GetOne(respond.ModalId); err != nil {
+		if _, err := s.repoVac.GetOneAnon(respond.ModalId); err != nil {
 			return err
 		}
 		return s.repoRespond.CreateResToVac(respond)
 	case models.EMPLOYER:
-		if _, err := s.repoVac.GetOne(respond.MyId); err != nil {
+		if _, err := s.repoVac.GetOneAnon(respond.MyId); err != nil {
 			return err
 		}
-		if _, err := s.repoRes.GetOne(respond.ModalId); err != nil {
+		if _, err := s.repoRes.GetOneAnon(respond.ModalId); err != nil {
 			return err
 		}
 		return s.repoRespond.CreateVacToRes(respond)
@@ -37,18 +38,137 @@ func (s *RespondService) CreateRespond(userRole string, respond DTO.RespondModel
 	return nil
 }
 
-func (s *RespondService) GetMyRespondAppl(userId uint, page int64, filter string) ([]DTO.RespondVacancy, models.PaginationData, error) {
-	return s.repoRespond.GetMyRespondAppl(userId, page, filter)
+func (s *RespondService) UpdateRespond(userId uint, userRole string, id uint, respond DTO.RespondUpdate) error {
+	switch userRole {
+	case models.APPLICANT:
+		vacToRes, err := s.repoRespond.GetVacToRes(id)
+		if err != nil {
+			return err
+		}
+		resume, err := s.repoRes.GetOneAnon(vacToRes.ResumeID)
+		if err != nil {
+			return err
+		}
+		if userId != resume.ApplicantID {
+			return errors.New("not enough rights")
+		}
+		return s.repoRespond.UpdateVacToRes(id, respond)
+	case models.EMPLOYER:
+		resToVac, err := s.repoRespond.GetResToVac(id)
+		if err != nil {
+			return err
+		}
+		vac, err := s.repoVac.GetOneAnon(resToVac.VacancyID)
+		if err != nil {
+			return err
+		}
+		if userId != vac.EmployerID {
+			return errors.New("not enough rights")
+		}
+		return s.repoRespond.UpdateResToVac(id, respond)
+	}
+	return nil
 }
 
-func (s *RespondService) GetMyRespondEmpl(userId uint, page int64, filter string) ([]DTO.RespondResume, models.PaginationData, error) {
-	return s.repoRespond.GetMyRespondEmpl(userId, page, filter)
+func (s *RespondService) GetMyRespond(userId uint, userRole string, id uint) (DTO.Respond, error) {
+	switch userRole {
+	case models.APPLICANT:
+		return s.repoRespond.GetMyRespondAppl(id)
+	case models.EMPLOYER:
+		return s.repoRespond.GetMyRespondEmpl(id)
+	}
+	return DTO.Respond{}, nil
 }
 
-func (s *RespondService) GetOtherRespondAppl(userId uint, page int64, filter string) ([]DTO.RespondVacancy, models.PaginationData, error) {
-	return s.repoRespond.GetOtherRespondAppl(userId, page, filter)
+func (s *RespondService) GetOtherRespond(userId uint, userRole string, id uint) (DTO.Respond, error) {
+	switch userRole {
+	case models.APPLICANT:
+		return s.repoRespond.GetOtherRespondAppl(id)
+	case models.EMPLOYER:
+		return s.repoRespond.GetOtherRespondEmpl(id)
+	}
+	return DTO.Respond{}, nil
 }
 
-func (s *RespondService) GetOtherRespondEmpl(userId uint, page int64, filter string) ([]DTO.RespondResume, models.PaginationData, error) {
-	return s.repoRespond.GetOtherRespondEmpl(userId, page, filter)
+func (s *RespondService) GetMyAllResponds(userId uint, userRole string, page int64, filter string) ([]DTO.Respond, models.PaginationData, error) {
+	switch userRole {
+	case models.APPLICANT:
+		return s.repoRespond.GetMyAllRespondsAppl(userId, page, filter)
+	case models.EMPLOYER:
+		return s.repoRespond.GetMyAllRespondsEmpl(userId, page, filter)
+	}
+	return nil, models.PaginationData{}, nil
+}
+
+func (s *RespondService) GetOtherAllResponds(userId uint, userRole string, page int64, filter string) ([]DTO.Respond, models.PaginationData, error) {
+	switch userRole {
+	case models.APPLICANT:
+		return s.repoRespond.GetOtherAllRespondsAppl(userId, page, filter)
+	case models.EMPLOYER:
+		return s.repoRespond.GetOtherAllRespondsEmpl(userId, page, filter)
+	}
+	return nil, models.PaginationData{}, nil
+}
+
+func (s *RespondService) DeleteMyRespond(userId uint, userRole string, respondId uint) error {
+	switch userRole {
+	case models.APPLICANT:
+		resToVac, err := s.repoRespond.GetResToVac(respondId)
+		if err != nil {
+			return err
+		}
+		res, err := s.repoRes.GetOneAnon(resToVac.ResumeID)
+		if err != nil {
+			return err
+		}
+		if userId != res.ApplicantID {
+			return errors.New("not enough rights")
+		}
+		return s.repoRespond.DeleteResToVac(respondId)
+	case models.EMPLOYER:
+		vacToRes, err := s.repoRespond.GetVacToRes(respondId)
+		if err != nil {
+			return err
+		}
+		vac, err := s.repoRes.GetOneAnon(vacToRes.ResumeID)
+		if err != nil {
+			return err
+		}
+		if userId != vac.ApplicantID {
+			return errors.New("not enough rights")
+		}
+		return s.repoRespond.DeleteVacToRes(respondId)
+	}
+	return nil
+}
+func (s *RespondService) DeleteOtherRespond(userId uint, userRole string, respondId uint) error {
+	switch userRole {
+	case models.APPLICANT:
+		vacToRes, err := s.repoRespond.GetVacToRes(userId)
+		if err != nil {
+			return err
+		}
+		resume, err := s.repoRes.GetOneAnon(vacToRes.ResumeID)
+		if err != nil {
+			return err
+		}
+		if userId != resume.ApplicantID {
+			return errors.New("not enough rights")
+		}
+		return s.repoRespond.DeleteVacToRes(respondId)
+	case models.EMPLOYER:
+		resToVac, err := s.repoRespond.GetResToVac(userId)
+		if err != nil {
+			return err
+		}
+		vac, err := s.repoVac.GetOneAnon(resToVac.VacancyID)
+		if err != nil {
+			return err
+		}
+		if userId != vac.EmployerID {
+			return errors.New("not enough rights")
+		}
+		return s.repoRespond.DeleteResToVac(respondId)
+	}
+	return nil
 }

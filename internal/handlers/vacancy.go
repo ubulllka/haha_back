@@ -20,7 +20,7 @@ func (h *Handler) getAllVacancies(c *gin.Context) {
 	c.JSON(http.StatusOK, vacancies)
 }
 
-func (h *Handler) searchVacancies(c *gin.Context) {
+func (h *Handler) searchVacanciesAnon(c *gin.Context) {
 	q := c.Query("q")
 
 	page, err := strconv.Atoi(c.Query("page"))
@@ -29,7 +29,45 @@ func (h *Handler) searchVacancies(c *gin.Context) {
 		return
 	}
 
-	vacancies, pag, err := h.services.Vacancy.SearchVacancies(int64(page), q)
+	vacancies, pag, err := h.services.Vacancy.SearchVacanciesAnon(int64(page), q)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, map[string]interface{}{
+		"list": vacancies,
+		"pag":  pag,
+	})
+}
+
+func (h *Handler) getVacancyAnon(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
+		return
+	}
+
+	vacancy, err := h.services.Vacancy.GetVacancyAnon(uint(id))
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, vacancy)
+}
+
+func (h *Handler) searchVacancies(c *gin.Context) {
+	q := c.Query("q")
+
+	page, err := strconv.Atoi(c.Query("page"))
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "invalid page param")
+		return
+	}
+	userId, _ := getUserId(c)
+
+	vacancies, pag, err := h.services.Vacancy.SearchVacancies(userId, int64(page), q)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
@@ -47,8 +85,9 @@ func (h *Handler) getVacancy(c *gin.Context) {
 		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
 		return
 	}
+	userId, _ := getUserId(c)
 
-	vacancy, err := h.services.Vacancy.GetVacancy(uint(id))
+	vacancy, err := h.services.Vacancy.GetVacancy(userId, uint(id))
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return

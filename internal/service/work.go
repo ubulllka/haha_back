@@ -17,12 +17,16 @@ func NewWorkService(repoRes Resume, repoWork Work) *WorkService {
 	return &WorkService{repoRes: repoRes, repoWork: repoWork}
 }
 
+func (s *WorkService) GetListWork(resumeId uint) ([]models.Work, error) {
+	return s.repoWork.GetList(resumeId)
+}
+
 func (s *WorkService) GetWork(userId uint) (models.Work, error) {
 	return s.repoWork.GetOne(userId)
 }
 
 func (s *WorkService) CreateWork(userId, resumeId uint, userRole string, work DTO.WorkCreate) (uint, error) {
-	res, err := s.repoRes.GetOne(resumeId)
+	res, err := s.repoRes.GetOneAnon(resumeId)
 	if err != nil {
 		return 0, err
 	}
@@ -59,7 +63,7 @@ func (s *WorkService) UpdateWork(userId, workId uint, userRole string, work DTO.
 		return err
 	}
 
-	res, err := s.repoRes.GetOne(oldWork.ResumeID)
+	res, err := s.repoRes.GetOneAnon(oldWork.ResumeID)
 	if err != nil {
 		return err
 	}
@@ -77,7 +81,7 @@ func (s *WorkService) DeleteWork(userId, workId uint, userRole string) error {
 		return err
 	}
 
-	res, err := s.repoRes.GetOne(oldWork.ResumeID)
+	res, err := s.repoRes.GetOneAnon(oldWork.ResumeID)
 	if err != nil {
 		return err
 	}

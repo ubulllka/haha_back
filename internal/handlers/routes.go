@@ -43,17 +43,17 @@ func (h *Handler) InitRouter() *gin.Engine {
 			userAnon.GET("/:id", h.getUser)
 			userAnon.GET("/:id/listpag", h.getListPag)
 		}
-		vacAnon := apiAnon.Group("/vac")
+		vacAnon := apiAnon.Group("/vaca")
 		{
 			vacAnon.GET("/", h.getAllVacancies)
-			vacAnon.GET("/search", h.searchVacancies)
-			vacAnon.GET("/:id", h.getVacancy)
+			vacAnon.GET("/search", h.searchVacanciesAnon)
+			vacAnon.GET("/:id", h.getVacancyAnon)
 		}
-		resAnon := apiAnon.Group("/res")
+		resAnon := apiAnon.Group("/resa")
 		{
 			resAnon.GET("/", h.getAllResumes)
-			resAnon.GET("/search", h.searchResumes)
-			resAnon.GET("/:id", h.getResume)
+			resAnon.GET("/search", h.searchResumesAnon)
+			resAnon.GET("/:id", h.getResumeAnon)
 		}
 	}
 
@@ -72,17 +72,25 @@ func (h *Handler) InitRouter() *gin.Engine {
 		respond := api.Group("/respond")
 		{
 			respond.POST("/", h.createRespond)
-			respond.GET("/my", h.getMyRespond)
-			respond.GET("/other", h.getOtherRespond)
+			respond.PATCH("/:id", h.updateRespond)
+			respond.GET("/my", h.getMyAllResponds)
+			respond.GET("/other", h.getOtherAllResponds)
+			respond.GET("/:id/my", h.getMyRespond)
+			respond.GET("/:id/other", h.getOtherRespond)
+			respond.DELETE("/:id/my", h.deleteMyRespond)
+			respond.DELETE("/:id/other", h.deleteOtherRespond)
 
 		}
 
 		res := api.Group("/res")
 		{
+			res.GET("/search", h.searchResumes)
+			res.GET("/:id", h.getResume)
 			res.POST("/", h.createResume)
 			res.PATCH("/:id", h.updateResume)
 			res.DELETE("/:id", h.deleteResume)
 
+			res.GET("/:id/work", h.getListWork)
 			res.POST("/:id/work", h.createWork)
 			work := res.Group("/work")
 			{
@@ -93,7 +101,8 @@ func (h *Handler) InitRouter() *gin.Engine {
 
 		vac := api.Group("/vac")
 		{
-
+			vac.GET("/search", h.searchVacancies)
+			vac.GET("/:id", h.getVacancy)
 			vac.POST("/", h.createVacancy)
 			vac.PATCH("/:id", h.updateVacancy)
 			vac.DELETE("/:id", h.deleteVacancy)

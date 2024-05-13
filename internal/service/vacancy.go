@@ -19,8 +19,20 @@ func (s *VacancyService) GetAllVacancies() ([]models.Vacancy, error) {
 	return s.repo.GetAll()
 }
 
-func (s *VacancyService) SearchVacancies(page int64, q string) ([]models.Vacancy, models.PaginationData, error) {
-	return s.repo.Search(page, q)
+func (s *VacancyService) SearchVacanciesAnon(page int64, q string) ([]models.Vacancy, models.PaginationData, error) {
+	return s.repo.SearchAnon(page, q)
+}
+
+func (s *VacancyService) GetVacancyAnon(resumeId uint) (models.Vacancy, error) {
+	return s.repo.GetOneAnon(resumeId)
+}
+
+func (s *VacancyService) SearchVacancies(userId uint, page int64, q string) ([]DTO.VacancyDTO, models.PaginationData, error) {
+	return s.repo.Search(userId, page, q)
+}
+
+func (s *VacancyService) GetVacancy(userId, resumeId uint) (DTO.VacancyDTO, error) {
+	return s.repo.GetOne(userId, resumeId)
 }
 
 func (s *VacancyService) GetEmplAllVacanciesPag(id uint, page int64) ([]models.Vacancy, models.PaginationData, error) {
@@ -29,10 +41,6 @@ func (s *VacancyService) GetEmplAllVacanciesPag(id uint, page int64) ([]models.V
 
 func (s *VacancyService) GetEmplAllVacancies(id uint) ([]DTO.ItemList, error) {
 	return s.repo.GetEmplAll(id)
-}
-
-func (s *VacancyService) GetVacancy(resumeId uint) (models.Vacancy, error) {
-	return s.repo.GetOne(resumeId)
 }
 
 func (s *VacancyService) CreateVacancy(userId uint, vacancy DTO.VacancyCreate) (uint, error) {
@@ -50,7 +58,7 @@ func (s *VacancyService) CreateVacancy(userId uint, vacancy DTO.VacancyCreate) (
 }
 
 func (s *VacancyService) UpdateVacancy(userId, vacancyId uint, userRole string, vacancy DTO.VacancyUpdate) error {
-	vac, err := s.GetVacancy(vacancyId)
+	vac, err := s.GetVacancyAnon(vacancyId)
 	if err != nil {
 		return err
 	}
@@ -61,7 +69,7 @@ func (s *VacancyService) UpdateVacancy(userId, vacancyId uint, userRole string, 
 }
 
 func (s *VacancyService) DeleteVacancy(userId, vacancyId uint, userRole string) error {
-	vac, err := s.GetVacancy(vacancyId)
+	vac, err := s.GetVacancyAnon(vacancyId)
 	if err != nil {
 		return err
 	}

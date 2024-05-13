@@ -20,6 +20,43 @@ func (h *Handler) getAllResumes(c *gin.Context) {
 	c.JSON(http.StatusOK, resumes)
 }
 
+func (h *Handler) searchResumesAnon(c *gin.Context) {
+	q := c.Query("q")
+
+	page, err := strconv.Atoi(c.Query("page"))
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "invalid page param")
+		return
+	}
+
+	resumes, pag, err := h.services.Resume.SearchResumesAnon(int64(page), q)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, map[string]interface{}{
+		"list": resumes,
+		"pag":  pag,
+	})
+}
+
+func (h *Handler) getResumeAnon(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
+		return
+	}
+
+	resume, err := h.services.Resume.GetResumeAnon(uint(id))
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, resume)
+}
+
 func (h *Handler) searchResumes(c *gin.Context) {
 	q := c.Query("q")
 
@@ -29,7 +66,9 @@ func (h *Handler) searchResumes(c *gin.Context) {
 		return
 	}
 
-	resumes, pag, err := h.services.Resume.SearchResumes(int64(page), q)
+	userId, _ := getUserId(c)
+
+	resumes, pag, err := h.services.Resume.SearchResumes(userId, int64(page), q)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
@@ -48,7 +87,9 @@ func (h *Handler) getResume(c *gin.Context) {
 		return
 	}
 
-	resume, err := h.services.Resume.GetResume(uint(id))
+	userId, _ := getUserId(c)
+
+	resume, err := h.services.Resume.GetResume(userId, uint(id))
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return

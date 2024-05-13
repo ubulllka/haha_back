@@ -23,7 +23,7 @@ func (r *ResumePostgres) GetAll() ([]models.Resume, error) {
 	return resumes, nil
 }
 
-func (r *ResumePostgres) Search(page int64, q string) ([]models.Resume, models.PaginationData, error) {
+func (r *ResumePostgres) SearchAnon(page int64, q string) ([]models.Resume, models.PaginationData, error) {
 	var resumes []models.Resume
 
 	var count int64
@@ -37,10 +37,63 @@ func (r *ResumePostgres) Search(page int64, q string) ([]models.Resume, models.P
 	pag.Get(count, page, pageSize)
 
 	if err := dbBefore.Order("updated_at desc").Scopes(Paginate(page, pageSize)).
-		Preload("OldWorks").Find(&resumes).Error; err != nil {
+		Find(&resumes).Error; err != nil {
 		return nil, models.PaginationData{}, err
 	}
 	return resumes, pag, nil
+}
+
+func (r *ResumePostgres) GetOneAnon(resumeId uint) (models.Resume, error) {
+	var resume models.Resume
+	if err := r.db.First(&resume, resumeId).Error; err != nil {
+		return models.Resume{}, err
+	}
+	return resume, nil
+}
+
+func (r *ResumePostgres) Search(userId uint, page int64, q string) ([]DTO.ResumeDTO, models.PaginationData, error) {
+	var resumes []DTO.ResumeDTO
+
+	var ids []string
+	if err := r.db.Model(&models.Vacancy{}).Where("employer_id = ?", userId).Pluck("id", &ids).Error; err != nil {
+		return nil, models.PaginationData{}, err
+	}
+
+	var count int64
+	query := "%" + q + "%"
+
+	dbBefore := r.db.Table("resumes").
+		Select("resumes.id as ID, post, description, applicant_id, resumes.created_at as created_at, resumes.updated_at as updated_at, status").
+		Joins("left join res_to_vacs on res_to_vacs.resume_id=resumes.id AND vacancy_id IN (?)", ids).
+		Where("post LIKE ?", query).Count(&count)
+	if err := dbBefore.Error; err != nil {
+		return nil, models.PaginationData{}, err
+	}
+	pageSize := int64(10)
+	pag := models.PaginationData{}
+	pag.Get(count, page, pageSize)
+
+	if err := dbBefore.Order("updated_at desc").Scopes(Paginate(page, pageSize)).
+		Find(&resumes).Error; err != nil {
+		return nil, models.PaginationData{}, err
+	}
+	return resumes, pag, nil
+}
+
+func (r *ResumePostgres) GetOne(userId, resumeId uint) (DTO.ResumeDTO, error) {
+	var resume DTO.ResumeDTO
+	var ids []string
+	if err := r.db.Model(&models.Vacancy{}).Where("employer_id = ?", userId).Pluck("id", &ids).Error; err != nil {
+		return DTO.ResumeDTO{}, err
+	}
+
+	if err := r.db.Table("resumes").
+		Select("resumes.id as ID, post, description, applicant_id, resumes.created_at as created_at, resumes.updated_at as updated_at, status").
+		Joins("left join res_to_vacs on res_to_vacs.resume_id=resumes.id AND vacancy_id IN (?)", ids).
+		Find(&resume, resumeId).Error; err != nil {
+		return DTO.ResumeDTO{}, err
+	}
+	return resume, nil
 }
 
 func (r *ResumePostgres) GetApplAllPag(userId uint, page int64) ([]models.Resume, models.PaginationData, error) {
@@ -74,14 +127,6 @@ func (r *ResumePostgres) GetApplAll(userId uint) ([]DTO.ItemList, error) {
 	return resumes, nil
 }
 
-func (r *ResumePostgres) GetOne(resumeId uint) (models.Resume, error) {
-	var resume models.Resume
-	if err := r.db.Preload("OldWorks").First(&resume, resumeId).Error; err != nil {
-		return models.Resume{}, err
-	}
-	return resume, nil
-}
-
 func (r *ResumePostgres) Create(resume models.Resume) (uint, error) {
 	if err := r.db.Create(&resume).Error; err != nil {
 		return 0, err
@@ -100,7 +145,7 @@ func (r *ResumePostgres) Update(resumeId uint, input DTO.ResumeUpdate) error {
 		args["description"] = *input.Description
 	}
 
-	resume, err := r.GetOne(resumeId)
+	resume, err := r.GetOneAnon(resumeId)
 	if err != nil {
 		return err
 	}
