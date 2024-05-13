@@ -16,22 +16,30 @@ func NewRespondService(repoRespond Respond, repoVac Vacancy, repoRes Resume) *Re
 	return &RespondService{repoRespond: repoRespond, repoVac: repoVac, repoRes: repoRes}
 }
 
-func (s *RespondService) CreateRespond(userRole string, respond DTO.RespondModel) error {
+func (s *RespondService) CreateRespond(userId uint, userRole string, respond DTO.RespondModel) error {
 	switch userRole {
 	case models.APPLICANT:
-		if _, err := s.repoRes.GetOneAnon(respond.MyId); err != nil {
-			return err
-		}
 		if _, err := s.repoVac.GetOneAnon(respond.ModalId); err != nil {
 			return err
 		}
-		return s.repoRespond.CreateResToVac(respond)
-	case models.EMPLOYER:
-		if _, err := s.repoVac.GetOneAnon(respond.MyId); err != nil {
+		res, err := s.repoRes.GetOneAnon(respond.MyId)
+		if err != nil {
 			return err
 		}
+		if userId != res.ApplicantID {
+			return errors.New("not enough rights")
+		}
+		return s.repoRespond.CreateResToVac(respond)
+	case models.EMPLOYER:
 		if _, err := s.repoRes.GetOneAnon(respond.ModalId); err != nil {
 			return err
+		}
+		vac, err := s.repoVac.GetOneAnon(respond.MyId)
+		if err != nil {
+			return err
+		}
+		if userId != vac.EmployerID {
+			return errors.New("not enough rights")
 		}
 		return s.repoRespond.CreateVacToRes(respond)
 	}
@@ -73,6 +81,7 @@ func (s *RespondService) UpdateRespond(userId uint, userRole string, id uint, re
 func (s *RespondService) GetMyRespond(userId uint, userRole string, id uint) (DTO.Respond, error) {
 	switch userRole {
 	case models.APPLICANT:
+
 		return s.repoRespond.GetMyRespondAppl(id)
 	case models.EMPLOYER:
 		return s.repoRespond.GetMyRespondEmpl(id)
@@ -130,6 +139,25 @@ func (s *RespondService) DeleteMyRespond(userId uint, userRole string, respondId
 		if err != nil {
 			return err
 		}
+		vac, err := s.repoVac.GetOneAnon(vacToRes.VacancyID)
+		if err != nil {
+			return err
+		}
+		if userId != vac.EmployerID {
+			return errors.New("not enough rights")
+		}
+		return s.repoRespond.DeleteVacToRes(respondId)
+	}
+
+	return nil
+}
+func (s *RespondService) DeleteOtherRespond(userId uint, userRole string, respondId uint) error {
+	switch userRole {
+	case models.APPLICANT:
+		vacToRes, err := s.repoRespond.GetVacToRes(respondId)
+		if err != nil {
+			return err
+		}
 		vac, err := s.repoRes.GetOneAnon(vacToRes.ResumeID)
 		if err != nil {
 			return err
@@ -138,34 +166,16 @@ func (s *RespondService) DeleteMyRespond(userId uint, userRole string, respondId
 			return errors.New("not enough rights")
 		}
 		return s.repoRespond.DeleteVacToRes(respondId)
-	}
-	return nil
-}
-func (s *RespondService) DeleteOtherRespond(userId uint, userRole string, respondId uint) error {
-	switch userRole {
-	case models.APPLICANT:
-		vacToRes, err := s.repoRespond.GetVacToRes(userId)
-		if err != nil {
-			return err
-		}
-		resume, err := s.repoRes.GetOneAnon(vacToRes.ResumeID)
-		if err != nil {
-			return err
-		}
-		if userId != resume.ApplicantID {
-			return errors.New("not enough rights")
-		}
-		return s.repoRespond.DeleteVacToRes(respondId)
 	case models.EMPLOYER:
-		resToVac, err := s.repoRespond.GetResToVac(userId)
+		resToVac, err := s.repoRespond.GetResToVac(respondId)
 		if err != nil {
 			return err
 		}
-		vac, err := s.repoVac.GetOneAnon(resToVac.VacancyID)
+		res, err := s.repoRes.GetOneAnon(resToVac.ResumeID)
 		if err != nil {
 			return err
 		}
-		if userId != vac.EmployerID {
+		if userId != res.ApplicantID {
 			return errors.New("not enough rights")
 		}
 		return s.repoRespond.DeleteResToVac(respondId)

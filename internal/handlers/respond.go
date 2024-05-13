@@ -14,12 +14,10 @@ func (h *Handler) createRespond(c *gin.Context) {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
-	userRole, err := getUserRole(c)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-	if err := h.services.CreateRespond(userRole, input); err != nil {
+	userId, _ := getUserId(c)
+	userRole, _ := getUserRole(c)
+
+	if err := h.services.CreateRespond(userId, userRole, input); err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}

@@ -65,7 +65,7 @@ func (r *VacancyPostgres) Search(userId uint, page int64, q string) ([]DTO.Vacan
 
 	dbBefore := r.db.Table("vacancies").
 		Select("vacancies.id as ID, post, description, employer_id, vacancies.created_at as created_at, vacancies.updated_at as updated_at, status").
-		Joins("left join vac_to_res on vac_to_res.vacancy_id=vacancies.id AND resume_id IN (?)", ids).
+		Joins("left join res_to_vacs on res_to_vacs.vacancy_id=vacancies.id AND resume_id IN (?)", ids).
 		Where("post LIKE ?", query).Count(&count)
 	if err := dbBefore.Error; err != nil {
 		return nil, models.PaginationData{}, err
@@ -91,7 +91,7 @@ func (r *VacancyPostgres) GetOne(userId, vacancyId uint) (DTO.VacancyDTO, error)
 
 	if err := r.db.Table("vacancies").
 		Select("vacancies.id as ID, post, description, employer_id, vacancies.created_at as created_at, vacancies.updated_at as updated_at, status").
-		Joins("left join vac_to_res on vac_to_res.vacancy_id=vacancies.id AND resume_id IN (?)", ids).
+		Joins("left join res_to_vacs on res_to_vacs.vacancy_id=vacancies.id AND resume_id IN (?)", ids).
 		Find(&vacancy, vacancyId).Error; err != nil {
 		return DTO.VacancyDTO{}, err
 	}

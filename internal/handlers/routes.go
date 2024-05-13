@@ -54,6 +54,7 @@ func (h *Handler) InitRouter() *gin.Engine {
 			resAnon.GET("/", h.getAllResumes)
 			resAnon.GET("/search", h.searchResumesAnon)
 			resAnon.GET("/:id", h.getResumeAnon)
+			resAnon.GET("/:id/work", h.getListWork)
 		}
 	}
 
@@ -90,7 +91,6 @@ func (h *Handler) InitRouter() *gin.Engine {
 			res.PATCH("/:id", h.updateResume)
 			res.DELETE("/:id", h.deleteResume)
 
-			res.GET("/:id/work", h.getListWork)
 			res.POST("/:id/work", h.createWork)
 			work := res.Group("/work")
 			{

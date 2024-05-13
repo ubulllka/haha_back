@@ -57,7 +57,7 @@ type Work interface {
 }
 
 type Respond interface {
-	CreateRespond(userRole string, respond DTO.RespondModel) error
+	CreateRespond(userId uint, userRole string, respond DTO.RespondModel) error
 	UpdateRespond(userId uint, userRole string, id uint, respond DTO.RespondUpdate) error
 	GetMyRespond(userId uint, userRole string, id uint) (DTO.Respond, error)
 	GetOtherRespond(userId uint, userRole string, id uint) (DTO.Respond, error)
