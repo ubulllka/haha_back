@@ -81,10 +81,10 @@ func (s *RespondService) UpdateRespond(userId uint, userRole string, id uint, re
 func (s *RespondService) GetMyRespond(userId uint, userRole string, id uint) (DTO.Respond, error) {
 	switch userRole {
 	case models.APPLICANT:
-
-		return s.repoRespond.GetMyRespondAppl(id)
+		return s.repoRespond.GetOtherRespondEmpl(id)
 	case models.EMPLOYER:
 		return s.repoRespond.GetMyRespondEmpl(id)
+
 	}
 	return DTO.Respond{}, nil
 }
@@ -94,9 +94,10 @@ func (s *RespondService) GetOtherRespond(userId uint, userRole string, id uint) 
 	case models.APPLICANT:
 		return s.repoRespond.GetOtherRespondAppl(id)
 	case models.EMPLOYER:
-		return s.repoRespond.GetOtherRespondEmpl(id)
+		return s.repoRespond.GetMyRespondAppl(id)
 	}
 	return DTO.Respond{}, nil
+
 }
 
 func (s *RespondService) GetMyAllResponds(userId uint, userRole string, page int64, filter string) ([]DTO.Respond, models.PaginationData, error) {
@@ -171,11 +172,11 @@ func (s *RespondService) DeleteOtherRespond(userId uint, userRole string, respon
 		if err != nil {
 			return err
 		}
-		res, err := s.repoRes.GetOneAnon(resToVac.ResumeID)
+		vac, err := s.repoVac.GetOneAnon(resToVac.VacancyID)
 		if err != nil {
 			return err
 		}
-		if userId != res.ApplicantID {
+		if userId != vac.EmployerID {
 			return errors.New("not enough rights")
 		}
 		return s.repoRespond.DeleteResToVac(respondId)

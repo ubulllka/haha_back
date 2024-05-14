@@ -14,7 +14,7 @@ func NewVacancyPostgres(db *gorm.DB) *VacancyPostgres {
 	return &VacancyPostgres{db: db}
 }
 
-func (r *VacancyPostgres) GetAll() ([]models.Vacancy, error) {
+func (r *VacancyPostgres) GetAllV() ([]models.Vacancy, error) {
 	var vacancies []models.Vacancy
 
 	if err := r.db.Order("updated_at desc").Find(&vacancies).Error; err != nil {
@@ -46,7 +46,7 @@ func (r *VacancyPostgres) SearchAnon(page int64, q string) ([]models.Vacancy, mo
 
 func (r *VacancyPostgres) GetOneAnon(vacancyId uint) (models.Vacancy, error) {
 	var vacancy models.Vacancy
-	if err := r.db.Find(&vacancy, vacancyId).Error; err != nil {
+	if err := r.db.First(&vacancy, vacancyId).Error; err != nil {
 		return models.Vacancy{}, err
 	}
 	return vacancy, nil
@@ -157,5 +157,5 @@ func (r *VacancyPostgres) Update(vacancyId uint, input DTO.VacancyUpdate) error 
 }
 
 func (r *VacancyPostgres) Delete(vacancyId uint) error {
-	return r.db.Delete(&models.Vacancy{}, vacancyId).Error
+	return r.db.Unscoped().Delete(&models.Vacancy{}, vacancyId).Error
 }

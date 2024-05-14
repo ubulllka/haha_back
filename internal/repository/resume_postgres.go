@@ -14,7 +14,7 @@ func NewResumePostgres(db *gorm.DB) *ResumePostgres {
 	return &ResumePostgres{db: db}
 }
 
-func (r *ResumePostgres) GetAll() ([]models.Resume, error) {
+func (r *ResumePostgres) GetAllR() ([]models.Resume, error) {
 	var resumes []models.Resume
 	if err := r.db.Order("updated_at desc").Preload("OldWorks").
 		Find(&resumes).Error; err != nil {
@@ -158,5 +158,5 @@ func (r *ResumePostgres) Update(resumeId uint, input DTO.ResumeUpdate) error {
 }
 
 func (r *ResumePostgres) Delete(resumeId uint) error {
-	return r.db.Delete(&models.Resume{}, resumeId).Error
+	return r.db.Unscoped().Delete(&models.Resume{}, resumeId).Error
 }

@@ -16,7 +16,7 @@ func NewVacancyService(repo Vacancy) *VacancyService {
 }
 
 func (s *VacancyService) GetAllVacancies() ([]models.Vacancy, error) {
-	return s.repo.GetAll()
+	return s.repo.GetAllV()
 }
 
 func (s *VacancyService) SearchVacanciesAnon(page int64, q string) ([]models.Vacancy, models.PaginationData, error) {

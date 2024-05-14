@@ -20,7 +20,7 @@ type User interface {
 }
 
 type Vacancy interface {
-	GetAll() ([]models.Vacancy, error)
+	GetAllV() ([]models.Vacancy, error)
 	SearchAnon(page int64, q string) ([]models.Vacancy, models.PaginationData, error)
 	GetOneAnon(vacancyId uint) (models.Vacancy, error)
 	Search(userId uint, page int64, q string) ([]DTO.VacancyDTO, models.PaginationData, error)
@@ -35,7 +35,7 @@ type Vacancy interface {
 }
 
 type Resume interface {
-	GetAll() ([]models.Resume, error)
+	GetAllR() ([]models.Resume, error)
 	SearchAnon(page int64, q string) ([]models.Resume, models.PaginationData, error)
 	GetOneAnon(resumeId uint) (models.Resume, error)
 	Search(userId uint, page int64, q string) ([]DTO.ResumeDTO, models.PaginationData, error)

@@ -139,13 +139,13 @@ func (r *RespondPostgres) GetMyAllRespondsAppl(userId uint, page int64, filter s
 	}
 	filterField := strings.Split(filter, ",")
 
-	dbBefore := r.db.Table("vac_to_res").
-		Select("vac_to_res.id as id, resumes.id as resume_id, status, letter, "+
-			"resumes.post as post, resumes.description as description, vacancy_id, "+
-			"vacancies.post as other_post, vac_to_res.created_at as created_at, "+
-			"vac_to_res.updated_at as updated_at").
-		Joins("inner join resumes on vac_to_res.resume_id=resumes.id").
-		Joins("inner join vacancies on vac_to_res.vacancy_id=vacancies.id").
+	dbBefore := r.db.Table("res_to_vacs").
+		Select("res_to_vacs.id as id, vacancies.id as vacancy_id, status, letter, "+
+			"vacancies.post as post, vacancies.description as description, resume_id, "+
+			"resumes.post as other_post, res_to_vacs.created_at as created_at, "+
+			"res_to_vacs.updated_at as updated_at").
+		Joins("inner join vacancies on res_to_vacs.vacancy_id=vacancies.id").
+		Joins("inner join resumes on res_to_vacs.resume_id=resumes.id").
 		Where("resume_id IN (?)", ids).Where("status IN (?)", filterField).Count(&cnt)
 
 	if err := dbBefore.Error; err != nil {

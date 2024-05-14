@@ -17,7 +17,7 @@ func NewResumeService(repoResume Resume) *ResumeService {
 }
 
 func (s *ResumeService) GetAllResumes() ([]models.Resume, error) {
-	return s.repo.GetAll()
+	return s.repo.GetAllR()
 }
 
 func (s *ResumeService) SearchResumesAnon(page int64, q string) ([]models.Resume, models.PaginationData, error) {

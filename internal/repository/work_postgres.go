@@ -78,5 +78,5 @@ func (r *WorkPostgres) Update(workId uint, input DTO.WorkUpdate) error {
 }
 
 func (r *WorkPostgres) Delete(workId uint) error {
-	return r.db.Delete(&models.Work{}, workId).Error
+	return r.db.Unscoped().Delete(&models.Work{}, workId).Error
 }
