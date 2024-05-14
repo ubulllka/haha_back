@@ -29,7 +29,7 @@ type Vacancy interface {
 	GetEmplAllPag(userId uint, page int64) ([]models.Vacancy, models.PaginationData, error)
 	GetEmplAll(userId uint) ([]DTO.ItemList, error)
 
-	Create(vacancy models.Vacancy) (uint, error)
+	Create(vacancy models.Vacancy) error
 	Update(vacancyId uint, vacancy DTO.VacancyUpdate) error
 	Delete(vacancyId uint) error
 }

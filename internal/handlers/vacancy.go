@@ -111,15 +111,13 @@ func (h *Handler) createVacancy(c *gin.Context) {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
-	id, err := h.services.Vacancy.CreateVacancy(userId, vacancy)
-	if err != nil {
+
+	if err := h.services.Vacancy.CreateVacancy(userId, vacancy); err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, map[string]interface{}{
-		"id": id,
-	})
+	c.JSON(http.StatusOK, statusResponse{"ok"})
 }
 
 func (h Handler) updateVacancy(c *gin.Context) {

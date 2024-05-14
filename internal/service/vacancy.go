@@ -43,18 +43,14 @@ func (s *VacancyService) GetEmplAllVacancies(id uint) ([]DTO.ItemList, error) {
 	return s.repo.GetEmplAll(id)
 }
 
-func (s *VacancyService) CreateVacancy(userId uint, vacancy DTO.VacancyCreate) (uint, error) {
+func (s *VacancyService) CreateVacancy(userId uint, vacancy DTO.VacancyCreate) error {
 	newVacancy := models.Vacancy{
 		Post:        vacancy.Post,
 		Description: vacancy.Description,
 		EmployerID:  userId,
 	}
 
-	vacancyId, err := s.repo.Create(newVacancy)
-	if err != nil {
-		return 0, err
-	}
-	return vacancyId, nil
+	return s.repo.Create(newVacancy)
 }
 
 func (s *VacancyService) UpdateVacancy(userId, vacancyId uint, userRole string, vacancy DTO.VacancyUpdate) error {

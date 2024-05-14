@@ -129,11 +129,8 @@ func (r *VacancyPostgres) GetEmplAll(userId uint) ([]DTO.ItemList, error) {
 	return vacancies, nil
 }
 
-func (r *VacancyPostgres) Create(vacancy models.Vacancy) (uint, error) {
-	if err := r.db.Create(&vacancy).Error; err != nil {
-		return 0, err
-	}
-	return vacancy.ID, nil
+func (r *VacancyPostgres) Create(vacancy models.Vacancy) error {
+	return r.db.Create(&vacancy).Error
 }
 
 func (r *VacancyPostgres) Update(vacancyId uint, input DTO.VacancyUpdate) error {
