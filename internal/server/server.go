@@ -9,10 +9,10 @@ import (
 
 type Server struct {
 	httpServer *http.Server
-	logg       logger.Logger
+	logg       *logger.Logger
 }
 
-func (s *Server) Run(url string, handler http.Handler) error {
+func (s *Server) Run(url string, handler http.Handler, logg *logger.Logger) error {
 	s.httpServer = &http.Server{
 		Addr:           url,
 		Handler:        handler,
@@ -20,6 +20,7 @@ func (s *Server) Run(url string, handler http.Handler) error {
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
 	}
+	s.logg = logg
 
 	s.logg.Info("init http server")
 

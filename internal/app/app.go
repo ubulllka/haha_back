@@ -31,7 +31,7 @@ func Run(logg logger.Logger) error {
 	logg.Info("Init repositories, services, handlers")
 
 	srv := new(server.Server)
-	if err := srv.Run(conf.Server.URL, hand.InitRouter()); err != nil {
+	if err := srv.Run(conf.Server.URL, hand.InitRouter(), &logg); err != nil {
 		logg.Fatalf("server did not start work: %s", err.Error())
 		return err
 	}
