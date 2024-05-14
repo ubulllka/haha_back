@@ -1,7 +1,7 @@
 package service
 
 import (
-	"errors"
+	"haha/internal/logger"
 	"haha/internal/models"
 	"haha/internal/models/DTO"
 	"strings"
@@ -10,10 +10,11 @@ import (
 
 type ResumeService struct {
 	repo Resume
+	logg *logger.Logger
 }
 
-func NewResumeService(repoResume Resume) *ResumeService {
-	return &ResumeService{repo: repoResume}
+func NewResumeService(repo Resume, logg *logger.Logger) *ResumeService {
+	return &ResumeService{repo: repo, logg: logg}
 }
 
 func (s *ResumeService) GetAllResumes() ([]models.Resume, error) {
@@ -44,7 +45,7 @@ func (s *ResumeService) GetApplAllResumes(id uint) ([]DTO.ItemList, error) {
 	return s.repo.GetApplAll(id)
 }
 
-func (s *ResumeService) CreateResume(userId uint, resume DTO.ResumeCreate) (uint, error) {
+func (s *ResumeService) CreateResume(userId uint, resume DTO.ResumeCreate) error {
 
 	newResume := models.Resume{
 		Post:        resume.Post,
@@ -55,39 +56,43 @@ func (s *ResumeService) CreateResume(userId uint, resume DTO.ResumeCreate) (uint
 	for _, v := range resume.OldWork {
 		tStart, err := time.Parse(models.PARSEDATE, v.StartTime)
 		if err != nil {
-			return 0, err
+			s.logg.Error(err)
+			return err
 		}
+
 		var tEnd time.Time
 		if !strings.EqualFold(v.EndTime, "") {
 			tEnd, err = time.Parse(models.PARSEDATE, v.EndTime)
 			if err != nil {
-				return 0, err
+				s.logg.Error(err)
+				return err
 			}
 		} else {
 			tEnd = time.Time{}
 		}
+
 		newWork := models.Work{
 			Post:        v.Post,
 			Description: v.Description,
 			StartTime:   tStart,
 			EndTime:     tEnd,
 		}
+
 		newResume.OldWorks = append(newResume.OldWorks, newWork)
 	}
-	resumeId, err := s.repo.Create(newResume)
-	if err != nil {
-		return 0, err
-	}
-	return resumeId, nil
+	return s.repo.Create(newResume)
 }
 
 func (s *ResumeService) UpdateResume(userId, resumeId uint, userRole string, resume DTO.ResumeUpdate) error {
 	res, err := s.GetResumeAnon(resumeId)
 	if err != nil {
+		s.logg.Error(err)
 		return err
 	}
+
 	if userId != res.ApplicantID && !strings.EqualFold(userRole, models.ADMIN) {
-		return errors.New("not enough rights")
+		s.logg.Error(errAuth)
+		return errAuth
 	}
 	return s.repo.Update(resumeId, resume)
 }
@@ -95,10 +100,13 @@ func (s *ResumeService) UpdateResume(userId, resumeId uint, userRole string, res
 func (s ResumeService) DeleteResume(userId, resumeId uint, userRole string) error {
 	res, err := s.GetResumeAnon(resumeId)
 	if err != nil {
+		s.logg.Error(err)
 		return err
 	}
+
 	if userId != res.ApplicantID && !strings.EqualFold(userRole, models.ADMIN) {
-		return errors.New("not enough rights")
+		s.logg.Error(errAuth)
+		return errAuth
 	}
 	return s.repo.Delete(resumeId)
 }

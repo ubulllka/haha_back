@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"github.com/gin-gonic/gin"
-	"haha/internal/logger"
 )
 
 type errorResponse struct {
@@ -14,7 +13,5 @@ type statusResponse struct {
 }
 
 func newErrorResponse(c *gin.Context, statusCode int, message string) {
-	logg := logger.GetLogger()
-	logg.Error(message)
 	c.AbortWithStatusJSON(statusCode, errorResponse{message})
 }

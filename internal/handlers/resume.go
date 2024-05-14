@@ -10,9 +10,14 @@ import (
 	"strings"
 )
 
+var (
+	errAuth = errors.New("not enough rights")
+)
+
 func (h *Handler) getAllResumes(c *gin.Context) {
 	resumes, err := h.services.Resume.GetAllResumes()
 	if err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -25,12 +30,14 @@ func (h *Handler) searchResumesAnon(c *gin.Context) {
 
 	page, err := strconv.Atoi(c.Query("page"))
 	if err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusBadRequest, "invalid page param")
 		return
 	}
 
 	resumes, pag, err := h.services.Resume.SearchResumesAnon(int64(page), q)
 	if err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -44,12 +51,14 @@ func (h *Handler) searchResumesAnon(c *gin.Context) {
 func (h *Handler) getResumeAnon(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
 		return
 	}
 
 	resume, err := h.services.Resume.GetResumeAnon(uint(id))
 	if err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -62,14 +71,21 @@ func (h *Handler) searchResumes(c *gin.Context) {
 
 	page, err := strconv.Atoi(c.Query("page"))
 	if err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusBadRequest, "invalid page param")
 		return
 	}
 
-	userId, _ := getUserId(c)
+	userId, err := h.GetUserId(c)
+	if err != nil {
+		h.logg.Error(err)
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
 
 	resumes, pag, err := h.services.Resume.SearchResumes(userId, int64(page), q)
 	if err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -83,14 +99,21 @@ func (h *Handler) searchResumes(c *gin.Context) {
 func (h *Handler) getResume(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
 		return
 	}
 
-	userId, _ := getUserId(c)
+	userId, err := h.GetUserId(c)
+	if err != nil {
+		h.logg.Error(err)
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
 
 	resume, err := h.services.Resume.GetResume(userId, uint(id))
 	if err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -99,42 +122,67 @@ func (h *Handler) getResume(c *gin.Context) {
 }
 
 func (h *Handler) createResume(c *gin.Context) {
-	userId, _ := getUserId(c)
-	userRole, _ := getUserRole(c)
+	userId, err := h.GetUserId(c)
+	if err != nil {
+		h.logg.Error(err)
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	userRole, err := h.GetUserRole(c)
+	if err != nil {
+		h.logg.Error(err)
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
 
 	if !strings.EqualFold(userRole, models.APPLICANT) {
-		newErrorResponse(c, http.StatusForbidden, errors.New("not enough rights").Error())
+		h.logg.Error(errAuth)
+		newErrorResponse(c, http.StatusForbidden, "not enough rights")
 		return
 	}
 
 	var resume DTO.ResumeCreate
 
 	if err := c.BindJSON(&resume); err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
-	id, err := h.services.Resume.CreateResume(userId, resume)
-	if err != nil {
+
+	if err := h.services.Resume.CreateResume(userId, resume); err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, map[string]interface{}{
-		"id": id,
-	})
+	c.JSON(http.StatusOK, statusResponse{"ok"})
 }
 
 func (h *Handler) updateResume(c *gin.Context) {
-	userId, _ := getUserId(c)
-	userRole, _ := getUserRole(c)
+	userId, err := h.GetUserId(c)
+	if err != nil {
+		h.logg.Error(err)
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	userRole, err := h.GetUserRole(c)
+	if err != nil {
+		h.logg.Error(err)
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
 
 	if !strings.EqualFold(userRole, models.APPLICANT) && !strings.EqualFold(userRole, models.ADMIN) {
-		newErrorResponse(c, http.StatusForbidden, errors.New("not enough rights").Error())
+		h.logg.Error(errAuth)
+		newErrorResponse(c, http.StatusForbidden, "not enough rights")
 		return
 	}
 
 	resumeId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
+		h.logg.Error("invalid id param")
 		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
 		return
 	}
@@ -142,11 +190,13 @@ func (h *Handler) updateResume(c *gin.Context) {
 	var resume DTO.ResumeUpdate
 
 	if err := c.BindJSON(&resume); err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	if err := h.services.Resume.UpdateResume(userId, uint(resumeId), userRole, resume); err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -155,21 +205,35 @@ func (h *Handler) updateResume(c *gin.Context) {
 }
 
 func (h *Handler) deleteResume(c *gin.Context) {
-	userId, _ := getUserId(c)
-	userRole, _ := getUserRole(c)
+	userId, err := h.GetUserId(c)
+	if err != nil {
+		h.logg.Error(err)
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	userRole, err := h.GetUserRole(c)
+	if err != nil {
+		h.logg.Error(err)
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
 
 	if !strings.EqualFold(userRole, models.APPLICANT) && !strings.EqualFold(userRole, models.ADMIN) {
-		newErrorResponse(c, http.StatusForbidden, errors.New("not enough rights").Error())
+		h.logg.Error(errAuth)
+		newErrorResponse(c, http.StatusForbidden, "not enough rights")
 		return
 	}
 
 	resumeId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
 		return
 	}
 
 	if err := h.services.Resume.DeleteResume(userId, uint(resumeId), userRole); err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}

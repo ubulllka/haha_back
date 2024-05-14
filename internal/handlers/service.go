@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"haha/internal/logger"
 	"haha/internal/models"
 	"haha/internal/models/DTO"
 	"haha/internal/service"
@@ -44,14 +45,14 @@ type Resume interface {
 	GetApplAllResumesPag(userId uint, page int64) ([]models.Resume, models.PaginationData, error)
 	GetApplAllResumes(userId uint) ([]DTO.ItemList, error)
 
-	CreateResume(userId uint, resume DTO.ResumeCreate) (uint, error)
+	CreateResume(userId uint, resume DTO.ResumeCreate) error
 	UpdateResume(userId, resumeId uint, userRole string, resume DTO.ResumeUpdate) error
 	DeleteResume(userId, resumeId uint, userRole string) error
 }
 
 type Work interface {
 	GetListWork(resumeId uint) ([]models.Work, error)
-	CreateWork(userId, resumeId uint, userRole string, work DTO.WorkCreate) (uint, error)
+	CreateWork(userId, resumeId uint, userRole string, work DTO.WorkCreate) error
 	UpdateWork(userId, workId uint, userRole string, work DTO.WorkUpdate) error
 	DeleteWork(userId, workId uint, userRole string) error
 }
@@ -59,10 +60,10 @@ type Work interface {
 type Respond interface {
 	CreateRespond(userId uint, userRole string, respond DTO.RespondModel) error
 	UpdateRespond(userId uint, userRole string, id uint, respond DTO.RespondUpdate) error
-	GetMyRespond(userId uint, userRole string, id uint) (DTO.Respond, error)
-	GetOtherRespond(userId uint, userRole string, id uint) (DTO.Respond, error)
+
 	GetMyAllResponds(userId uint, userRole string, page int64, filter string) ([]DTO.Respond, models.PaginationData, error)
 	GetOtherAllResponds(userId uint, userRole string, page int64, filter string) ([]DTO.Respond, models.PaginationData, error)
+
 	DeleteMyRespond(userId uint, userRole string, respondId uint) error
 	DeleteOtherRespond(userId uint, userRole string, respondId uint) error
 }
@@ -76,13 +77,13 @@ type Service struct {
 	Respond
 }
 
-func NewService(repos *service.Repository) *Service {
+func NewService(repos *service.Repository, logger *logger.Logger) *Service {
 	return &Service{
-		Authorization: service.NewAuthService(repos.Authorization),
-		User:          service.NewUserService(repos.User),
-		Vacancy:       service.NewVacancyService(repos.Vacancy),
-		Resume:        service.NewResumeService(repos.Resume),
-		Work:          service.NewWorkService(repos.Resume, repos.Work),
-		Respond:       service.NewRespondService(repos.Respond, repos.Vacancy, repos.Resume),
+		Authorization: service.NewAuthService(repos.Authorization, logger),
+		User:          service.NewUserService(repos.User, logger),
+		Vacancy:       service.NewVacancyService(repos.Vacancy, logger),
+		Resume:        service.NewResumeService(repos.Resume, logger),
+		Work:          service.NewWorkService(repos.Resume, repos.Work, logger),
+		Respond:       service.NewRespondService(repos.Respond, repos.Vacancy, repos.Resume, logger),
 	}
 }

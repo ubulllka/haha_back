@@ -1,16 +1,18 @@
 package service
 
 import (
+	"haha/internal/logger"
 	"haha/internal/models"
 	"haha/internal/models/DTO"
 )
 
 type UserService struct {
 	repo User
+	logg *logger.Logger
 }
 
-func NewUserService(repo User) *UserService {
-	return &UserService{repo: repo}
+func NewUserService(repo User, logg *logger.Logger) *UserService {
+	return &UserService{repo: repo, logg: logg}
 }
 
 func (s *UserService) GetAllUsers() ([]models.User, error) {

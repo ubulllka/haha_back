@@ -3,10 +3,16 @@ package handlers
 import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"haha/internal/logger"
 )
 
 type Handler struct {
 	services *Service
+	logg     *logger.Logger
+}
+
+func NewHandler(services *Service, logg *logger.Logger) *Handler {
+	return &Handler{services: services, logg: logg}
 }
 
 //Role
@@ -14,10 +20,6 @@ type Handler struct {
 //applicant - соискатель
 //employer - работодатель
 //admin - админ
-
-func NewHandler(services *Service) *Handler {
-	return &Handler{services: services}
-}
 
 func (h *Handler) InitRouter() *gin.Engine {
 	r := gin.New()
@@ -76,8 +78,6 @@ func (h *Handler) InitRouter() *gin.Engine {
 			respond.PATCH("/:id", h.updateRespond)
 			respond.GET("/my", h.getMyAllResponds)
 			respond.GET("/other", h.getOtherAllResponds)
-			respond.GET("/:id/my", h.getMyRespond)
-			respond.GET("/:id/other", h.getOtherRespond)
 			respond.DELETE("/:id/my", h.deleteMyRespond)
 			respond.DELETE("/:id/other", h.deleteOtherRespond)
 

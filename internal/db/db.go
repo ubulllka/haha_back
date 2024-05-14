@@ -10,9 +10,8 @@ import (
 
 var DB *gorm.DB
 
-func InitializeDB(logg logger.Logger, host, user, password, name string, port int64) (*gorm.DB, error) {
+func InitializeDB(host, user, password, name string, port int64, logg logger.Logger) (*gorm.DB, error) {
 	var err error
-
 	urlPostgres := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		host, port, user, password, name)
 
@@ -30,7 +29,7 @@ func InitializeDB(logg logger.Logger, host, user, password, name string, port in
 		logg.Panic(err)
 		return nil, err
 	}
-	logg.Info("Init database")
+	logg.Info("init database")
 
 	return DB, nil
 }

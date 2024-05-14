@@ -12,17 +12,25 @@ import (
 func (h *Handler) getAllUser(c *gin.Context) {
 	users, err := h.services.User.GetAllUsers()
 	if err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
+
 	c.JSON(http.StatusOK, users)
 }
 
 func (h *Handler) getInfo(c *gin.Context) {
-	id, _ := getUserId(c)
-
-	user, err := h.services.User.GetUser(id)
+	userId, err := h.GetUserId(c)
 	if err != nil {
+		h.logg.Error(err)
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	user, err := h.services.User.GetUser(userId)
+	if err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -31,22 +39,30 @@ func (h *Handler) getInfo(c *gin.Context) {
 }
 
 func (h *Handler) updateInfo(c *gin.Context) {
-	id, _ := getUserId(c)
+	userId, err := h.GetUserId(c)
+	if err != nil {
+		h.logg.Error(err)
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
 
 	var user DTO.UserUpdate
 
 	if err := c.BindJSON(&user); err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	if (user.Status != nil) && !strings.EqualFold(*user.Status, models.ACTIVE) &&
 		!strings.EqualFold(*user.Status, models.PASSIVE) && !strings.EqualFold(*user.Status, models.NO) {
+		h.logg.Error("invalid status param")
 		newErrorResponse(c, http.StatusBadRequest, "invalid status param")
 		return
 	}
 
-	if err := h.services.User.UpdateUser(id, user); err != nil {
+	if err := h.services.User.UpdateUser(userId, user); err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -57,12 +73,14 @@ func (h *Handler) updateInfo(c *gin.Context) {
 func (h *Handler) getUser(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
 		return
 	}
 
 	user, err := h.services.User.GetUser(uint(id))
 	if err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -73,10 +91,17 @@ func (h *Handler) getUser(c *gin.Context) {
 func (h *Handler) isUser(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
 		return
 	}
-	userId, _ := getUserId(c)
+
+	userId, err := h.GetUserId(c)
+	if err != nil {
+		h.logg.Error(err)
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
 
 	c.JSON(http.StatusOK, statusResponse{strconv.FormatBool(userId == uint(id))})
 
@@ -85,18 +110,32 @@ func (h *Handler) isUser(c *gin.Context) {
 func (h *Handler) getMyListPag(c *gin.Context) {
 	page, err := strconv.Atoi(c.Query("page"))
 	if err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusBadRequest, "invalid page param")
 		return
 	}
 
-	userRole, _ := getUserRole(c)
-	userId, _ := getUserId(c)
+	userId, err := h.GetUserId(c)
+	if err != nil {
+		h.logg.Error(err)
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	userRole, err := h.GetUserRole(c)
+	if err != nil {
+		h.logg.Error(err)
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
 
 	switch userRole {
+
 	case models.APPLICANT:
 		list, pag, err := h.services.Resume.GetApplAllResumesPag(userId, int64(page))
 
 		if err != nil {
+			h.logg.Error(err)
 			newErrorResponse(c, http.StatusInternalServerError, err.Error())
 			return
 		}
@@ -110,6 +149,7 @@ func (h *Handler) getMyListPag(c *gin.Context) {
 		list, pag, err := h.services.Vacancy.GetEmplAllVacanciesPag(userId, int64(page))
 
 		if err != nil {
+			h.logg.Error(err)
 			newErrorResponse(c, http.StatusInternalServerError, err.Error())
 			return
 		}
@@ -124,18 +164,21 @@ func (h *Handler) getMyListPag(c *gin.Context) {
 func (h *Handler) getListPag(c *gin.Context) {
 	page, err := strconv.Atoi(c.Query("page"))
 	if err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusBadRequest, "invalid page param")
 		return
 	}
 
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
 		return
 	}
 
 	user, err := h.services.User.GetUser(uint(id))
 	if err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -143,10 +186,12 @@ func (h *Handler) getListPag(c *gin.Context) {
 	userRole := user.Role
 
 	switch userRole {
+
 	case models.APPLICANT:
 		list, pag, err := h.services.Resume.GetApplAllResumesPag(uint(id), int64(page))
 
 		if err != nil {
+			h.logg.Error(err)
 			newErrorResponse(c, http.StatusInternalServerError, err.Error())
 			return
 		}
@@ -160,6 +205,7 @@ func (h *Handler) getListPag(c *gin.Context) {
 		list, pag, err := h.services.Vacancy.GetEmplAllVacanciesPag(uint(id), int64(page))
 
 		if err != nil {
+			h.logg.Error(err)
 			newErrorResponse(c, http.StatusInternalServerError, err.Error())
 			return
 		}
@@ -172,14 +218,27 @@ func (h *Handler) getListPag(c *gin.Context) {
 }
 
 func (h *Handler) getList(c *gin.Context) {
-	userRole, _ := getUserRole(c)
-	userId, _ := getUserId(c)
+	userId, err := h.GetUserId(c)
+	if err != nil {
+		h.logg.Error(err)
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	userRole, err := h.GetUserRole(c)
+	if err != nil {
+		h.logg.Error(err)
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
 
 	switch userRole {
+
 	case models.APPLICANT:
 		list, err := h.services.Resume.GetApplAllResumes(userId)
 
 		if err != nil {
+			h.logg.Error(err)
 			newErrorResponse(c, http.StatusInternalServerError, err.Error())
 			return
 		}
@@ -190,6 +249,7 @@ func (h *Handler) getList(c *gin.Context) {
 		list, err := h.services.Vacancy.GetEmplAllVacancies(userId)
 
 		if err != nil {
+			h.logg.Error(err)
 			newErrorResponse(c, http.StatusInternalServerError, err.Error())
 			return
 		}

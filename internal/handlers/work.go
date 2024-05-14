@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"errors"
 	"github.com/gin-gonic/gin"
 	"haha/internal/models"
 	"haha/internal/models/DTO"
@@ -13,6 +12,7 @@ import (
 func (h Handler) getListWork(c *gin.Context) {
 	resumeId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusBadRequest, "invalid work id param")
 		return
 	}
@@ -26,16 +26,29 @@ func (h Handler) getListWork(c *gin.Context) {
 }
 
 func (h Handler) createWork(c *gin.Context) {
-	userId, _ := getUserId(c)
-	userRole, _ := getUserRole(c)
+	userId, err := h.GetUserId(c)
+	if err != nil {
+		h.logg.Error(err)
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	userRole, err := h.GetUserRole(c)
+	if err != nil {
+		h.logg.Error(err)
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
 
 	if !strings.EqualFold(userRole, models.APPLICANT) && !strings.EqualFold(userRole, models.ADMIN) {
-		newErrorResponse(c, http.StatusForbidden, errors.New("not enough rights").Error())
+		h.logg.Error(err)
+		newErrorResponse(c, http.StatusForbidden, "not enough rights")
 		return
 	}
 
 	resumeId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusBadRequest, "invalid resume id param")
 		return
 	}
@@ -43,31 +56,43 @@ func (h Handler) createWork(c *gin.Context) {
 	var work DTO.WorkCreate
 
 	if err := c.BindJSON(&work); err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	id, err := h.services.Work.CreateWork(userId, uint(resumeId), userRole, work)
-	if err != nil {
+	if err := h.services.Work.CreateWork(userId, uint(resumeId), userRole, work); err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
-	c.JSON(http.StatusOK, map[string]interface{}{
-		"id": id,
-	})
+	c.JSON(http.StatusOK, statusResponse{"ok"})
 }
 
 func (h Handler) updateWork(c *gin.Context) {
-	userId, _ := getUserId(c)
-	userRole, _ := getUserRole(c)
+	userId, err := h.GetUserId(c)
+	if err != nil {
+		h.logg.Error(err)
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	userRole, err := h.GetUserRole(c)
+	if err != nil {
+		h.logg.Error(err)
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
 
 	if !strings.EqualFold(userRole, models.APPLICANT) && !strings.EqualFold(userRole, models.ADMIN) {
-		newErrorResponse(c, http.StatusForbidden, errors.New("not enough rights").Error())
+		h.logg.Error(err)
+		newErrorResponse(c, http.StatusForbidden, "not enough rights")
 		return
 	}
 
 	workId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusBadRequest, "invalid work id param")
 		return
 	}
@@ -75,11 +100,13 @@ func (h Handler) updateWork(c *gin.Context) {
 	var work DTO.WorkUpdate
 
 	if err := c.BindJSON(&work); err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	if err := h.services.Work.UpdateWork(userId, uint(workId), userRole, work); err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -88,21 +115,35 @@ func (h Handler) updateWork(c *gin.Context) {
 }
 
 func (h Handler) deleteWork(c *gin.Context) {
-	userId, _ := getUserId(c)
-	userRole, _ := getUserRole(c)
+	userId, err := h.GetUserId(c)
+	if err != nil {
+		h.logg.Error(err)
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	userRole, err := h.GetUserRole(c)
+	if err != nil {
+		h.logg.Error(err)
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
 
 	if !strings.EqualFold(userRole, models.APPLICANT) && !strings.EqualFold(userRole, models.ADMIN) {
-		newErrorResponse(c, http.StatusForbidden, errors.New("not enough rights").Error())
+		h.logg.Error(err)
+		newErrorResponse(c, http.StatusForbidden, "not enough rights")
 		return
 	}
 
 	workId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusBadRequest, "invalid work id param")
 		return
 	}
 
 	if err := h.services.Work.DeleteWork(userId, uint(workId), userRole); err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}

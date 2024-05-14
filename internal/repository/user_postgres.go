@@ -2,31 +2,40 @@ package repository
 
 import (
 	"github.com/jinzhu/gorm"
+	"haha/internal/logger"
 	"haha/internal/models"
 	"haha/internal/models/DTO"
 )
 
 type UserPostgres struct {
-	db *gorm.DB
+	db   *gorm.DB
+	logg *logger.Logger
 }
 
-func NewUserPostgres(db *gorm.DB) *UserPostgres {
-	return &UserPostgres{db: db}
+func NewUserPostgres(db *gorm.DB, logg *logger.Logger) *UserPostgres {
+	return &UserPostgres{db: db, logg: logg}
 }
 
 func (r *UserPostgres) GetAll() ([]models.User, error) {
 	var users []models.User
-	if err := r.db.Order("updated_at desc").Preload("Vacancies").Preload("Resumes").Find(&users).Error; err != nil {
+
+	if err := r.db.Order("updated_at desc").Preload("Vacancies").Preload("Resumes").
+		Find(&users).Error; err != nil {
+		r.logg.Error(err)
 		return nil, err
 	}
+
 	return users, nil
 }
 
 func (r *UserPostgres) GetOneById(id uint) (models.User, error) {
 	var user models.User
+
 	if err := r.db.Preload("Vacancies").Preload("Resumes").First(&user, id).Error; err != nil {
+		r.logg.Error(err)
 		return models.User{}, err
 	}
+
 	return user, nil
 }
 
@@ -59,12 +68,9 @@ func (r *UserPostgres) Update(id uint, input DTO.UserUpdate) error {
 
 	user, err := r.GetOneById(id)
 	if err != nil {
+		r.logg.Error(err)
 		return err
 	}
 
-	if err := r.db.Model(&user).Updates(args).Error; err != nil {
-		return err
-	}
-
-	return nil
+	return r.db.Model(&user).Updates(args).Error
 }

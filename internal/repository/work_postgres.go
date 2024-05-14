@@ -2,40 +2,45 @@ package repository
 
 import (
 	"github.com/jinzhu/gorm"
+	"haha/internal/logger"
 	"haha/internal/models"
 	"haha/internal/models/DTO"
 	"time"
 )
 
 type WorkPostgres struct {
-	db *gorm.DB
+	db   *gorm.DB
+	logg *logger.Logger
 }
 
-func NewWorkPostgres(db *gorm.DB) *WorkPostgres {
-	return &WorkPostgres{db: db}
+func NewWorkPostgres(db *gorm.DB, logg *logger.Logger) *WorkPostgres {
+	return &WorkPostgres{db: db, logg: logg}
 }
 
 func (r *WorkPostgres) GetList(resumeId uint) ([]models.Work, error) {
 	var works []models.Work
-	if err := r.db.Where("resume_id = ?", resumeId).Find(&works).Error; err != nil {
+
+	if err := r.db.Where("resume_id = ?", resumeId).Find(&works, resumeId).Error; err != nil {
+		r.logg.Error(err)
 		return nil, err
 	}
+
 	return works, nil
 }
 
 func (r *WorkPostgres) GetOne(userId uint) (models.Work, error) {
 	var work models.Work
+
 	if err := r.db.First(&work, userId).Error; err != nil {
+		r.logg.Error(err)
 		return models.Work{}, err
 	}
+
 	return work, nil
 }
 
-func (r *WorkPostgres) Create(work models.Work) (uint, error) {
-	if err := r.db.Create(&work).Error; err != nil {
-		return 0, err
-	}
-	return work.ID, nil
+func (r *WorkPostgres) Create(work models.Work) error {
+	return r.db.Create(&work).Error
 }
 
 func (r *WorkPostgres) Update(workId uint, input DTO.WorkUpdate) error {
@@ -52,6 +57,7 @@ func (r *WorkPostgres) Update(workId uint, input DTO.WorkUpdate) error {
 	if input.StartTime != nil {
 		tStart, err := time.Parse(models.PARSEDATE, *input.StartTime)
 		if err != nil {
+			r.logg.Error(err)
 			return err
 		}
 		args["start_time"] = tStart
@@ -60,6 +66,7 @@ func (r *WorkPostgres) Update(workId uint, input DTO.WorkUpdate) error {
 	if input.EndTime != nil {
 		tEnd, err := time.Parse(models.PARSEDATE, *input.EndTime)
 		if err != nil {
+			r.logg.Error(err)
 			return err
 		}
 		args["end_time"] = tEnd
@@ -67,14 +74,11 @@ func (r *WorkPostgres) Update(workId uint, input DTO.WorkUpdate) error {
 
 	work, err := r.GetOne(workId)
 	if err != nil {
+		r.logg.Error(err)
 		return err
 	}
 
-	if err := r.db.Model(&work).Updates(args).Error; err != nil {
-		return err
-	}
-
-	return nil
+	return r.db.Model(&work).Updates(args).Error
 }
 
 func (r *WorkPostgres) Delete(workId uint) error {

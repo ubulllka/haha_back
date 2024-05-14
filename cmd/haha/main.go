@@ -7,7 +7,7 @@ import (
 
 func main() {
 	logg := logger.GetLogger()
-	if err := app.Run(); err != nil {
+	if err := app.Run(logg); err != nil {
 		logg.Fatal(err)
 	}
 }

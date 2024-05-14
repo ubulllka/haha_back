@@ -1,7 +1,7 @@
 package service
 
 import (
-	"errors"
+	"haha/internal/logger"
 	"haha/internal/models"
 	"haha/internal/models/DTO"
 	"strings"
@@ -9,10 +9,11 @@ import (
 
 type VacancyService struct {
 	repo Vacancy
+	logg *logger.Logger
 }
 
-func NewVacancyService(repo Vacancy) *VacancyService {
-	return &VacancyService{repo: repo}
+func NewVacancyService(repo Vacancy, logg *logger.Logger) *VacancyService {
+	return &VacancyService{repo: repo, logg: logg}
 }
 
 func (s *VacancyService) GetAllVacancies() ([]models.Vacancy, error) {
@@ -56,21 +57,29 @@ func (s *VacancyService) CreateVacancy(userId uint, vacancy DTO.VacancyCreate) e
 func (s *VacancyService) UpdateVacancy(userId, vacancyId uint, userRole string, vacancy DTO.VacancyUpdate) error {
 	vac, err := s.GetVacancyAnon(vacancyId)
 	if err != nil {
+		s.logg.Error(err)
 		return err
 	}
+
 	if userId != vac.EmployerID && !strings.EqualFold(userRole, models.ADMIN) {
-		return errors.New("not enough rights")
+		s.logg.Error(errAuth)
+		return errAuth
 	}
+
 	return s.repo.Update(vacancyId, vacancy)
 }
 
 func (s *VacancyService) DeleteVacancy(userId, vacancyId uint, userRole string) error {
 	vac, err := s.GetVacancyAnon(vacancyId)
 	if err != nil {
+		s.logg.Error(err)
 		return err
 	}
+
 	if userId != vac.EmployerID && !strings.EqualFold(userRole, models.ADMIN) {
-		return errors.New("not enough rights")
+		s.logg.Error(errAuth)
+		return errAuth
 	}
+
 	return s.repo.Delete(vacancyId)
 }

@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"errors"
 	"github.com/gin-gonic/gin"
 	"haha/internal/models"
 	"haha/internal/models/DTO"
@@ -13,6 +12,7 @@ import (
 func (h *Handler) getAllVacancies(c *gin.Context) {
 	vacancies, err := h.services.Vacancy.GetAllVacancies()
 	if err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -25,12 +25,14 @@ func (h *Handler) searchVacanciesAnon(c *gin.Context) {
 
 	page, err := strconv.Atoi(c.Query("page"))
 	if err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusBadRequest, "invalid page param")
 		return
 	}
 
 	vacancies, pag, err := h.services.Vacancy.SearchVacanciesAnon(int64(page), q)
 	if err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -44,12 +46,14 @@ func (h *Handler) searchVacanciesAnon(c *gin.Context) {
 func (h *Handler) getVacancyAnon(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
 		return
 	}
 
 	vacancy, err := h.services.Vacancy.GetVacancyAnon(uint(id))
 	if err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -62,10 +66,17 @@ func (h *Handler) searchVacancies(c *gin.Context) {
 
 	page, err := strconv.Atoi(c.Query("page"))
 	if err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusBadRequest, "invalid page param")
 		return
 	}
-	userId, _ := getUserId(c)
+
+	userId, err := h.GetUserId(c)
+	if err != nil {
+		h.logg.Error(err)
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
 
 	vacancies, pag, err := h.services.Vacancy.SearchVacancies(userId, int64(page), q)
 	if err != nil {
@@ -82,13 +93,21 @@ func (h *Handler) searchVacancies(c *gin.Context) {
 func (h *Handler) getVacancy(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
 		return
 	}
-	userId, _ := getUserId(c)
+
+	userId, err := h.GetUserId(c)
+	if err != nil {
+		h.logg.Error(err)
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
 
 	vacancy, err := h.services.Vacancy.GetVacancy(userId, uint(id))
 	if err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -97,22 +116,36 @@ func (h *Handler) getVacancy(c *gin.Context) {
 }
 
 func (h *Handler) createVacancy(c *gin.Context) {
-	userId, _ := getUserId(c)
-	userRole, _ := getUserRole(c)
+	userId, err := h.GetUserId(c)
+	if err != nil {
+		h.logg.Error(err)
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	userRole, err := h.GetUserRole(c)
+	if err != nil {
+		h.logg.Error(err)
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
 
 	if !strings.EqualFold(userRole, models.EMPLOYER) {
-		newErrorResponse(c, http.StatusForbidden, errors.New("not enough rights").Error())
+		h.logg.Error(err)
+		newErrorResponse(c, http.StatusForbidden, "not enough rights")
 		return
 	}
 
 	var vacancy DTO.VacancyCreate
 
 	if err := c.BindJSON(&vacancy); err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	if err := h.services.Vacancy.CreateVacancy(userId, vacancy); err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -121,16 +154,29 @@ func (h *Handler) createVacancy(c *gin.Context) {
 }
 
 func (h Handler) updateVacancy(c *gin.Context) {
-	userId, _ := getUserId(c)
-	userRole, _ := getUserRole(c)
+	userId, err := h.GetUserId(c)
+	if err != nil {
+		h.logg.Error(err)
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	userRole, err := h.GetUserRole(c)
+	if err != nil {
+		h.logg.Error(err)
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
 
 	if !strings.EqualFold(userRole, models.EMPLOYER) && !strings.EqualFold(userRole, models.ADMIN) {
-		newErrorResponse(c, http.StatusForbidden, errors.New("not enough rights").Error())
+		h.logg.Error(err)
+		newErrorResponse(c, http.StatusForbidden, "not enough rights")
 		return
 	}
 
 	vacancyId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
 		return
 	}
@@ -138,11 +184,13 @@ func (h Handler) updateVacancy(c *gin.Context) {
 	var vacancy DTO.VacancyUpdate
 
 	if err := c.BindJSON(&vacancy); err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	if err := h.services.Vacancy.UpdateVacancy(userId, uint(vacancyId), userRole, vacancy); err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -151,21 +199,35 @@ func (h Handler) updateVacancy(c *gin.Context) {
 }
 
 func (h Handler) deleteVacancy(c *gin.Context) {
-	userId, _ := getUserId(c)
-	userRole, _ := getUserRole(c)
+	userId, err := h.GetUserId(c)
+	if err != nil {
+		h.logg.Error(err)
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	userRole, err := h.GetUserRole(c)
+	if err != nil {
+		h.logg.Error(err)
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
 
 	if !strings.EqualFold(userRole, models.EMPLOYER) && !strings.EqualFold(userRole, models.ADMIN) {
-		newErrorResponse(c, http.StatusForbidden, errors.New("not enough rights").Error())
+		h.logg.Error(err)
+		newErrorResponse(c, http.StatusForbidden, "not enough rights")
 		return
 	}
 
 	vacancyId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
 		return
 	}
 
 	if err := h.services.Vacancy.DeleteVacancy(userId, uint(vacancyId), userRole); err != nil {
+		h.logg.Error(err)
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}

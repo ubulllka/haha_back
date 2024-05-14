@@ -9,25 +9,24 @@ import (
 	"haha/internal/service"
 )
 
-func Run() error {
-	logg := logger.GetLogger()
+func Run(logg logger.Logger) error {
 
-	conf, err := config.InitConfig()
+	conf, err := config.InitConfig(logg)
 	if err != nil {
 		logg.Error(err)
 		return err
 	}
 
-	db, err := db.InitializeDB(logg, conf.DB.Host, conf.DB.User, conf.DB.Password, conf.DB.Name, conf.DB.Port)
+	dataBase, err := db.InitializeDB(conf.DB.Host, conf.DB.User, conf.DB.Password, conf.DB.Name, conf.DB.Port, logg)
 	if err != nil {
 		logg.Error(err)
 		return err
 	}
-	defer db.Close()
+	defer dataBase.Close()
 
-	repo := service.NewRepository(db)
-	serv := handlers.NewService(repo)
-	hand := handlers.NewHandler(serv)
+	repo := service.NewRepository(dataBase, &logg)
+	serv := handlers.NewService(repo, &logg)
+	hand := handlers.NewHandler(serv, &logg)
 
 	logg.Info("Init repositories, services, handlers")
 

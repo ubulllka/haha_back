@@ -2,7 +2,7 @@ package config
 
 import (
 	"github.com/ilyakaznacheev/cleanenv"
-	"log"
+	"haha/internal/logger"
 )
 
 var CONFIG Config
@@ -22,12 +22,14 @@ type Config struct {
 	} `yaml:"db"`
 }
 
-func InitConfig() (Config, error) {
+func InitConfig(logg logger.Logger) (Config, error) {
 	if err := cleanenv.ReadConfig("./config/local.yml", &CONFIG); err != nil {
-		log.Fatal(err)
+		logg.Fatal(err)
 		return Config{}, err
 	}
-	log.Println("Init config")
+
+	logg.Info("init config")
+
 	return CONFIG, nil
 }
 
