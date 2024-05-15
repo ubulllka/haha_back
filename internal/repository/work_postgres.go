@@ -20,7 +20,7 @@ func NewWorkPostgres(db *gorm.DB, logg *logger.Logger) *WorkPostgres {
 func (r *WorkPostgres) GetList(resumeId uint) ([]models.Work, error) {
 	var works []models.Work
 
-	if err := r.db.Where("resume_id = ?", resumeId).Find(&works, resumeId).Error; err != nil {
+	if err := r.db.Where("resume_id = ?", resumeId).Find(&works).Error; err != nil {
 		r.logg.Error(err)
 		return nil, err
 	}
