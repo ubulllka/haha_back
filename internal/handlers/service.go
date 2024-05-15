@@ -52,8 +52,6 @@ type Resume interface {
 
 type Work interface {
 	GetListWork(resumeId uint) ([]models.Work, error)
-	CreateWork(userId, resumeId uint, userRole string, work DTO.WorkCreate) error
-	UpdateWork(userId, workId uint, userRole string, work DTO.WorkUpdate) error
 	DeleteWork(userId, workId uint, userRole string) error
 }
 

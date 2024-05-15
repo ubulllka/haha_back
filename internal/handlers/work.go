@@ -3,7 +3,6 @@ package handlers
 import (
 	"github.com/gin-gonic/gin"
 	"haha/internal/models"
-	"haha/internal/models/DTO"
 	"net/http"
 	"strconv"
 	"strings"
@@ -23,95 +22,6 @@ func (h Handler) getListWork(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, works)
-}
-
-func (h Handler) createWork(c *gin.Context) {
-	userId, err := h.GetUserId(c)
-	if err != nil {
-		h.logg.Error(err)
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	userRole, err := h.GetUserRole(c)
-	if err != nil {
-		h.logg.Error(err)
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	if !strings.EqualFold(userRole, models.APPLICANT) && !strings.EqualFold(userRole, models.ADMIN) {
-		h.logg.Error(err)
-		newErrorResponse(c, http.StatusForbidden, "not enough rights")
-		return
-	}
-
-	resumeId, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		h.logg.Error(err)
-		newErrorResponse(c, http.StatusBadRequest, "invalid resume id param")
-		return
-	}
-
-	var work DTO.WorkCreate
-
-	if err := c.BindJSON(&work); err != nil {
-		h.logg.Error(err)
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	if err := h.services.Work.CreateWork(userId, uint(resumeId), userRole, work); err != nil {
-		h.logg.Error(err)
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-	}
-
-	c.JSON(http.StatusOK, statusResponse{"ok"})
-}
-
-func (h Handler) updateWork(c *gin.Context) {
-	userId, err := h.GetUserId(c)
-	if err != nil {
-		h.logg.Error(err)
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	userRole, err := h.GetUserRole(c)
-	if err != nil {
-		h.logg.Error(err)
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	if !strings.EqualFold(userRole, models.APPLICANT) && !strings.EqualFold(userRole, models.ADMIN) {
-		h.logg.Error(err)
-		newErrorResponse(c, http.StatusForbidden, "not enough rights")
-		return
-	}
-
-	workId, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		h.logg.Error(err)
-		newErrorResponse(c, http.StatusBadRequest, "invalid work id param")
-		return
-	}
-
-	var work DTO.WorkUpdate
-
-	if err := c.BindJSON(&work); err != nil {
-		h.logg.Error(err)
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	if err := h.services.Work.UpdateWork(userId, uint(workId), userRole, work); err != nil {
-		h.logg.Error(err)
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	c.JSON(http.StatusOK, statusResponse{"ok"})
 }
 
 func (h Handler) deleteWork(c *gin.Context) {

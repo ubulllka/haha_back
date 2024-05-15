@@ -179,5 +179,25 @@ func (r *VacancyPostgres) Update(vacancyId uint, input DTO.VacancyUpdate) error 
 }
 
 func (r *VacancyPostgres) Delete(vacancyId uint) error {
-	return r.db.Unscoped().Delete(&models.Vacancy{}, vacancyId).Error
+	tx := r.db.Begin()
+
+	if err := tx.Unscoped().Delete(models.ResToVac{}).Where("vacancy_id = ?", vacancyId).Error; err != nil {
+		r.logg.Error(err)
+		tx.Rollback()
+		return err
+	}
+
+	if err := tx.Unscoped().Delete(models.VacToRes{}).Where("vacancy_id = ?", vacancyId).Error; err != nil {
+		r.logg.Error(err)
+		tx.Rollback()
+		return err
+	}
+
+	if err := r.db.Unscoped().Delete(&models.Vacancy{}, vacancyId).Error; err != nil {
+		r.logg.Error(err)
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit().Error
 }

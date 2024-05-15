@@ -148,30 +148,132 @@ func (r *ResumePostgres) GetApplAll(userId uint) ([]DTO.ItemList, error) {
 	return resumes, nil
 }
 
-func (r *ResumePostgres) Create(resume models.Resume) error {
+func (r *ResumePostgres) Create(userId uint, resumeDTO DTO.ResumeCreate) error {
+	arrWork := make([]models.Work, 0)
+	for _, v := range resumeDTO.OldWorks {
+		arrWork = append(arrWork, models.Work{
+			Post:        v.Post,
+			Description: v.Description,
+			StartTime:   v.StartTime,
+			EndTime:     v.EndTime,
+		})
+	}
+
+	resume := models.Resume{
+		Post:        resumeDTO.Post,
+		Description: resumeDTO.Description,
+		ApplicantID: userId,
+		OldWorks:    arrWork,
+	}
 	return r.db.Create(&resume).Error
 }
 
+func remove(arr []DTO.WorkUpdate, id uint) []DTO.WorkUpdate {
+	newArr := make([]DTO.WorkUpdate, 0)
+	for _, v := range arr {
+		if v.Id != id {
+			newArr = append(newArr, v)
+		}
+	}
+	return newArr
+}
+
 func (r *ResumePostgres) Update(resumeId uint, input DTO.ResumeUpdate) error {
-	args := make(map[string]interface{})
 
-	if input.Post != nil {
-		args["post"] = *input.Post
+	oldArr := input.OldWorksOld
+	newArr := input.OldWorksNew
+	tx := r.db.Begin()
+
+	oldWork := make([]models.Work, 0)
+	for _, v := range newArr {
+		if v.WorkId != 0 {
+			var work models.Work
+			if err := tx.First(&work, v.WorkId).Error; err != nil {
+				r.logg.Error(err)
+				tx.Rollback()
+				return err
+			}
+			work.Post = v.Post
+			work.Description = v.Description
+			work.StartTime = v.StartTime
+			work.EndTime = v.EndTime
+			if err := tx.Save(&work).Error; err != nil {
+				r.logg.Error(err)
+				tx.Rollback()
+				return err
+			}
+			oldArr = remove(oldArr, v.Id)
+			oldWork = append(oldWork, work)
+		} else {
+			work := models.Work{
+				Post:        v.Post,
+				Description: v.Description,
+				StartTime:   v.StartTime,
+				EndTime:     v.EndTime,
+			}
+			if err := tx.Save(&work).Error; err != nil {
+				r.logg.Error(err)
+				tx.Rollback()
+				return err
+			}
+			oldArr = remove(oldArr, v.Id)
+			oldWork = append(oldWork, work)
+		}
 	}
 
-	if input.Description != nil {
-		args["description"] = *input.Description
+	for _, v := range oldArr {
+		if err := tx.Unscoped().Delete(models.Work{}, v.WorkId).Error; err != nil {
+			r.logg.Error(err)
+			tx.Rollback()
+			return err
+		}
 	}
 
-	resume, err := r.GetOneAnon(resumeId)
-	if err != nil {
+	var resume models.Resume
+	if err := tx.First(&resume, resumeId).Error; err != nil {
 		r.logg.Error(err)
+		tx.Rollback()
 		return err
 	}
 
-	return r.db.Model(&resume).Updates(args).Error
+	resume.Post = input.Post
+	resume.Description = input.Description
+	resume.OldWorks = oldWork
+
+	if err := tx.Save(&resume).Error; err != nil {
+		r.logg.Error(err)
+		tx.Rollback()
+		return err
+	}
+	return tx.Commit().Error
 }
 
 func (r *ResumePostgres) Delete(resumeId uint) error {
-	return r.db.Unscoped().Delete(&models.Resume{}, resumeId).Error
+	tx := r.db.Begin()
+
+	if err := tx.Unscoped().Delete(models.Work{}).Where("resume_id = ?", resumeId).Error; err != nil {
+		r.logg.Error(err)
+		tx.Rollback()
+		return err
+	}
+
+	if err := tx.Unscoped().Delete(models.ResToVac{}).Where("resume_id = ?", resumeId).Error; err != nil {
+		r.logg.Error(err)
+		tx.Rollback()
+		return err
+	}
+
+	if err := tx.Unscoped().Delete(models.VacToRes{}).Where("resume_id = ?", resumeId).Error; err != nil {
+		r.logg.Error(err)
+		tx.Rollback()
+		return err
+	}
+
+	if err := tx.Unscoped().Delete(&models.Resume{}, resumeId).Error; err != nil {
+		r.logg.Error(err)
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit().Error
 }

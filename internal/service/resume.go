@@ -5,7 +5,6 @@ import (
 	"haha/internal/models"
 	"haha/internal/models/DTO"
 	"strings"
-	"time"
 )
 
 type ResumeService struct {
@@ -46,41 +45,7 @@ func (s *ResumeService) GetApplAllResumes(id uint) ([]DTO.ItemList, error) {
 }
 
 func (s *ResumeService) CreateResume(userId uint, resume DTO.ResumeCreate) error {
-
-	newResume := models.Resume{
-		Post:        resume.Post,
-		Description: resume.Description,
-		ApplicantID: userId,
-	}
-
-	for _, v := range resume.OldWork {
-		tStart, err := time.Parse(models.PARSEDATE, v.StartTime)
-		if err != nil {
-			s.logg.Error(err)
-			return err
-		}
-
-		var tEnd time.Time
-		if !strings.EqualFold(v.EndTime, "") {
-			tEnd, err = time.Parse(models.PARSEDATE, v.EndTime)
-			if err != nil {
-				s.logg.Error(err)
-				return err
-			}
-		} else {
-			tEnd = time.Time{}
-		}
-
-		newWork := models.Work{
-			Post:        v.Post,
-			Description: v.Description,
-			StartTime:   tStart,
-			EndTime:     tEnd,
-		}
-
-		newResume.OldWorks = append(newResume.OldWorks, newWork)
-	}
-	return s.repo.Create(newResume)
+	return s.repo.Create(userId, resume)
 }
 
 func (s *ResumeService) UpdateResume(userId, resumeId uint, userRole string, resume DTO.ResumeUpdate) error {

@@ -52,7 +52,7 @@ type Resume interface {
 	GetApplAllPag(userId uint, page int64) ([]models.Resume, models.PaginationData, error)
 	GetApplAll(userId uint) ([]DTO.ItemList, error)
 
-	Create(resume models.Resume) error
+	Create(userId uint, resume DTO.ResumeCreate) error
 	Update(resumeId uint, resume DTO.ResumeUpdate) error
 	Delete(resumeId uint) error
 }
@@ -61,8 +61,8 @@ type Work interface {
 	GetList(resumeId uint) ([]models.Work, error)
 	GetOne(userId uint) (models.Work, error)
 
-	Create(work models.Work) error
-	Update(workId uint, input DTO.WorkUpdate) error
+	//Create(work models.Work) error
+	//Update(workId uint, input DTO.WorkUpdate) error
 	Delete(workId uint) error
 }
 

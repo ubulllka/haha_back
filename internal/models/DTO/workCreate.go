@@ -1,10 +1,10 @@
 package DTO
 
-type WorkCreate struct {
-	Post        string `json:"post"`
-	Description string `json:"description"`
-	StartTime   string `json:"start_time"`
-	EndTime     string `json:"end_time"`
-}
+import "time"
 
-///gggg
+type WorkCreate struct {
+	Post        string    `json:"post"`
+	Description string    `json:"description"`
+	StartTime   time.Time `json:"start_time"`
+	EndTime     time.Time `json:"end_time"`
+}

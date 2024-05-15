@@ -23,7 +23,7 @@ func NewHandler(services *Service, logg *logger.Logger) *Handler {
 
 func (h *Handler) InitRouter() *gin.Engine {
 	r := gin.New()
-
+	gin.SetMode(gin.ReleaseMode)
 	corsConfig := cors.DefaultConfig()
 	corsConfig.AllowOrigins = []string{"http://localhost:3000"}
 	corsConfig.AllowCredentials = true
@@ -91,10 +91,8 @@ func (h *Handler) InitRouter() *gin.Engine {
 			res.PATCH("/:id", h.updateResume)
 			res.DELETE("/:id", h.deleteResume)
 
-			res.POST("/:id/work", h.createWork)
 			work := res.Group("/work")
 			{
-				work.PATCH("/:id", h.updateWork)
 				work.DELETE("/:id", h.deleteWork)
 			}
 		}

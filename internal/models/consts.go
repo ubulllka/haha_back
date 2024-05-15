@@ -17,8 +17,6 @@ const (
 	ACCEPT  = "ACCEPT"
 	DECLINE = "DECLINE"
 	WAIT    = "WAIT"
-
-	PARSEDATE = "02-01-2006"
 )
 
 //Role
