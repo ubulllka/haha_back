@@ -52,7 +52,6 @@ type Resume interface {
 
 type Work interface {
 	GetListWork(resumeId uint) ([]models.Work, error)
-	DeleteWork(userId, workId uint, userRole string) error
 }
 
 type Respond interface {

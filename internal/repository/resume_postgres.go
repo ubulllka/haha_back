@@ -251,19 +251,19 @@ func (r *ResumePostgres) Update(resumeId uint, input DTO.ResumeUpdate) error {
 func (r *ResumePostgres) Delete(resumeId uint) error {
 	tx := r.db.Begin()
 
-	if err := tx.Unscoped().Delete(models.Work{}).Where("resume_id = ?", resumeId).Error; err != nil {
+	if err := tx.Unscoped().Where("resume_id = ?", resumeId).Delete(models.Work{}).Error; err != nil {
 		r.logg.Error(err)
 		tx.Rollback()
 		return err
 	}
 
-	if err := tx.Unscoped().Delete(models.ResToVac{}).Where("resume_id = ?", resumeId).Error; err != nil {
+	if err := tx.Unscoped().Where("resume_id = ?", resumeId).Delete(models.ResToVac{}).Error; err != nil {
 		r.logg.Error(err)
 		tx.Rollback()
 		return err
 	}
 
-	if err := tx.Unscoped().Delete(models.VacToRes{}).Where("resume_id = ?", resumeId).Error; err != nil {
+	if err := tx.Unscoped().Where("resume_id = ?", resumeId).Delete(models.VacToRes{}).Error; err != nil {
 		r.logg.Error(err)
 		tx.Rollback()
 		return err

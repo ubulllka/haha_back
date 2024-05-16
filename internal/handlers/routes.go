@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"haha/internal/logger"
 )
@@ -21,24 +20,33 @@ func NewHandler(services *Service, logg *logger.Logger) *Handler {
 //employer - работодатель
 //admin - админ
 
-func (h *Handler) InitRouter() *gin.Engine {
-	r := gin.New()
-	gin.SetMode(gin.ReleaseMode)
-	corsConfig := cors.DefaultConfig()
-	corsConfig.AllowOrigins = []string{"http://localhost:3000"}
-	corsConfig.AllowCredentials = true
-	corsConfig.AddAllowMethods("OPTIONS")
-	corsConfig.AllowHeaders = []string{"Content-Type", "Authorization"}
-	r.Use(cors.New(corsConfig))
+func (h *Handler) CORSMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PATCH, PUT, DELETE, OPTIONS")
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+		c.Next()
+	}
+}
 
-	auth := r.Group("/auth")
+func (h *Handler) InitRouter(URL string) *gin.Engine {
+	gin.SetMode(gin.ReleaseMode)
+	r := gin.Default()
+	r.Use(h.CORSMiddleware())
+
+	auth := r.Group("/api/v1/auth")
 	{
 		auth.POST("/sign-up", h.signUp)
 		auth.POST("/sign-in", h.signIn)
-		auth.GET("/info", h.getAllUser)
+		//auth.GET("/info", h.getAllUser)
 	}
 
-	apiAnon := r.Group("/api")
+	apiAnon := r.Group("/api/v1")
 	{
 		userAnon := apiAnon.Group("/user")
 		{
@@ -60,7 +68,7 @@ func (h *Handler) InitRouter() *gin.Engine {
 		}
 	}
 
-	api := r.Group("/api", h.userIdentity)
+	api := r.Group("/api/v1", h.userIdentity)
 	{
 
 		user := api.Group("/user")
@@ -91,10 +99,6 @@ func (h *Handler) InitRouter() *gin.Engine {
 			res.PATCH("/:id", h.updateResume)
 			res.DELETE("/:id", h.deleteResume)
 
-			work := res.Group("/work")
-			{
-				work.DELETE("/:id", h.deleteWork)
-			}
 		}
 
 		vac := api.Group("/vac")

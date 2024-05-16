@@ -11,13 +11,9 @@ import (
 
 func Run(logg logger.Logger) error {
 
-	conf, err := config.InitConfig(logg)
-	if err != nil {
-		logg.Error(err)
-		return err
-	}
+	conf := config.InitConfig(logg)
 
-	dataBase, err := db.InitializeDB(conf.DB.Host, conf.DB.User, conf.DB.Password, conf.DB.Name, conf.DB.Port, logg)
+	dataBase, err := db.InitializeDB(conf.DB.Host, conf.DB.Port, conf.DB.User, conf.DB.Password, conf.DB.Name, logg)
 	if err != nil {
 		logg.Error(err)
 		return err
@@ -31,7 +27,7 @@ func Run(logg logger.Logger) error {
 	logg.Info("Init repositories, services, handlers")
 
 	srv := new(server.Server)
-	if err := srv.Run(conf.Server.URL, hand.InitRouter(), &logg); err != nil {
+	if err := srv.Run(conf.Server.URL, hand.InitRouter(conf.Client.URL), &logg); err != nil {
 		logg.Fatalf("server did not start work: %s", err.Error())
 		return err
 	}

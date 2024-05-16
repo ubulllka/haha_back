@@ -10,9 +10,9 @@ import (
 
 var DB *gorm.DB
 
-func InitializeDB(host, user, password, name string, port int64, logg logger.Logger) (*gorm.DB, error) {
+func InitializeDB(host, port, user, password, name string, logg logger.Logger) (*gorm.DB, error) {
 	var err error
-	urlPostgres := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+	urlPostgres := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		host, port, user, password, name)
 
 	DB, err = gorm.Open("postgres", urlPostgres)

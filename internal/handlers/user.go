@@ -6,7 +6,6 @@ import (
 	"haha/internal/models/DTO"
 	"net/http"
 	"strconv"
-	"strings"
 )
 
 func (h *Handler) getAllUser(c *gin.Context) {
@@ -51,13 +50,6 @@ func (h *Handler) updateInfo(c *gin.Context) {
 	if err := c.BindJSON(&user); err != nil {
 		h.logg.Error(err)
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	if (user.Status != nil) && !strings.EqualFold(*user.Status, models.ACTIVE) &&
-		!strings.EqualFold(*user.Status, models.PASSIVE) && !strings.EqualFold(*user.Status, models.NO) {
-		h.logg.Error("invalid status param")
-		newErrorResponse(c, http.StatusBadRequest, "invalid status param")
 		return
 	}
 
